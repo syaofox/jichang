@@ -28,6 +28,8 @@ env/
 .env.local
 
 __pycache__/
+*.pyc
+*.pyo
 .ruff_cache/
 .pytest_cache/
 .coverage
@@ -37,6 +39,7 @@ htmlcov/
 *.log
 
 data/
+tmp/
 
 .DS_Store
 .idea/
@@ -44,3 +47,6 @@ data/
 *.swp
 *.swo
 *~
+
+.ruff_cache/
+configs/

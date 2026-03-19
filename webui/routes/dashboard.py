@@ -2,13 +2,9 @@
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-from pathlib import Path
+from webui.templates import templates
 from webui.services.yaml_service import YamlService
 from webui.services.rule_service import RuleService
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 router = APIRouter(prefix="", tags=["dashboard"])
 
@@ -21,12 +17,15 @@ async def dashboard(request: Request):
 
     config = yaml_service.get_config()
     rule_files = rule_service.list_rule_files()
+    configs = yaml_service.list_configs()
+    active_config = yaml_service.get_active_config()
 
     stats = {
         "proxy_groups": len(config.proxy_groups),
         "rule_providers": len(config.rule_providers),
         "rule_files": len(rule_files),
         "total_rules": sum(len(rf.rules) for rf in rule_files),
+        "config_files": len(configs),
     }
 
     return templates.TemplateResponse(
@@ -36,5 +35,7 @@ async def dashboard(request: Request):
             "config": config,
             "stats": stats,
             "rule_files": rule_files,
+            "configs": configs,
+            "active_config": active_config,
         },
     )

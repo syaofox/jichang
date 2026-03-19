@@ -8,6 +8,7 @@ from webui.routes import (
     config_router,
     rules_router,
     api_router,
+    configs_router,
 )
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -25,6 +26,7 @@ app.include_router(dashboard_router)
 app.include_router(config_router)
 app.include_router(rules_router)
 app.include_router(api_router)
+app.include_router(configs_router)
 
 
 @app.get("/health")

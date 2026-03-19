@@ -2,9 +2,15 @@
 
 import yaml
 import copy
+import shutil
 from pathlib import Path
-from typing import Optional, Dict, Any
-from webui.config import YAML_FILE, RULES_DIR
+from typing import Optional, Dict, Any, List
+from webui.config import (
+    CONFIGS_DIR,
+    TEMPLATE_FILE,
+    get_active_config_name,
+    set_active_config,
+)
 from webui.models.yaml_config import (
     ClashConfig,
     DnsConfig,
@@ -42,6 +48,7 @@ class YamlService:
             cls._instance = super().__new__(cls)
             cls._instance._config: Optional[ClashConfig] = None
             cls._instance._raw_config: Optional[Dict[str, Any]] = None
+            cls._instance._yaml_file: Optional[Path] = None
         return cls._instance
 
     def reload(self):
@@ -55,10 +62,11 @@ class YamlService:
         if self._config is not None:
             return self._config, self._raw_config
 
-        if not YAML_FILE.exists():
-            raise FileNotFoundError(f"Config file not found: {YAML_FILE}")
+        self._yaml_file = Path(CONFIGS_DIR) / get_active_config_name()
+        if not self._yaml_file.exists():
+            raise FileNotFoundError(f"Config file not found: {self._yaml_file}")
 
-        with open(YAML_FILE, "r", encoding="utf-8") as f:
+        with open(self._yaml_file, "r", encoding="utf-8") as f:
             raw = yaml.safe_load(f)
 
         self._raw_config = copy.deepcopy(raw) or {}
@@ -231,9 +239,12 @@ class YamlService:
         if self._config is None:
             return False
 
+        if self._yaml_file is None:
+            self._yaml_file = Path(CONFIGS_DIR) / get_active_config_name()
+
         raw = self._build_raw_config(self._config)
 
-        with open(YAML_FILE, "w", encoding="utf-8") as f:
+        with open(self._yaml_file, "w", encoding="utf-8") as f:
             yaml.dump(
                 raw, f, allow_unicode=True, default_flow_style=False, sort_keys=False
             )
@@ -285,3 +296,79 @@ class YamlService:
         config = self.get_config()
         config.rules = rules
         return self.save()
+
+    @staticmethod
+    def list_configs() -> List[Dict[str, Any]]:
+        """List all configuration files."""
+        configs = []
+        if not CONFIGS_DIR.exists():
+            return configs
+        for f in sorted(CONFIGS_DIR.glob("*.yaml")):
+            configs.append(
+                {
+                    "name": f.name,
+                    "active": f.name == get_active_config_name(),
+                    "size": f.stat().st_size,
+                    "modified": f.stat().st_mtime,
+                }
+            )
+        return configs
+
+    @staticmethod
+    def get_active_config() -> str:
+        """Get the currently active config name."""
+        return get_active_config_name()
+
+    @staticmethod
+    def create_config(name: str, from_template: bool = True) -> bool:
+        """Create a new configuration file."""
+        if not name.endswith(".yaml"):
+            name = f"{name}.yaml"
+
+        target_path = CONFIGS_DIR / name
+        if target_path.exists():
+            return False
+
+        if from_template:
+            shutil.copy(TEMPLATE_FILE, target_path)
+        else:
+            target_path.write_text("# 新配置文件\n", encoding="utf-8")
+
+        return True
+
+    @staticmethod
+    def delete_config(name: str) -> bool:
+        """Delete a configuration file."""
+        if not name.endswith(".yaml"):
+            name = f"{name}.yaml"
+
+        target_path = CONFIGS_DIR / name
+        if not target_path.exists():
+            return False
+
+        if name == get_active_config_name():
+            return False
+
+        target_path.unlink()
+        return True
+
+    @staticmethod
+    def activate_config(name: str) -> bool:
+        """Set a configuration as active."""
+        if not name.endswith(".yaml"):
+            name = f"{name}.yaml"
+
+        target_path = CONFIGS_DIR / name
+        if not target_path.exists():
+            return False
+
+        set_active_config(name)
+        YamlService().reload()
+        return True
+
+    @staticmethod
+    def get_template_content() -> str:
+        """Get the content of the template file."""
+        if TEMPLATE_FILE.exists():
+            return TEMPLATE_FILE.read_text(encoding="utf-8")
+        return ""

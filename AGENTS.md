@@ -4,24 +4,39 @@
 
 ## 项目概述
 
-- **主配置**: `dns-allv2.yaml` - Clash DNS 防泄露配置
+- **配置目录**: `configs/` - Clash 配置文件目录
+- **模板文件**: `dns-allv2.yaml` - 配置文件模板（只读）
 - **规则文件**: `rules/*.list` - 路由规则列表（Clash classical 格式）
 - **WebUI**: `webui/` - 可视化管理界面
 
-## 启动方式
+## 目录结构
 
-```bash
-# WebUI
-uv run uvicorn webui.main:app --host 0.0.0.0 --port 8000
-
-# 访问 http://localhost:8000
+```
+/mnt/github/jichang/
+├── configs/                 # 配置文件目录
+│   ├── active.txt          # 当前活跃配置名
+│   └── dns-allv2.yaml       # 默认配置文件
+├── dns-allv2.yaml          # 模板文件（只读）
+├── rules/                   # 规则文件目录
+│   └── *.list              # Clash 规则列表
+└── webui/                   # WebUI 目录
 ```
 
-## 工作流
+## 多配置文件管理
 
-1. 通过 WebUI 或直接编辑配置文件
-2. 提交到 GitHub
-3. OpenClash 用户通过订阅 URL 获取更新
+WebUI 支持管理多个 Clash 配置文件：
+
+- **新建**: 从模板复制创建新配置
+- **切换**: 通过顶部导航栏快速切换
+- **删除**: 管理页面删除不需要的配置
+- **激活**: 设置当前使用的配置
+
+### 工作流
+
+1. 创建多个配置文件（如：dns-allv2.yaml, my-config.yaml）
+2. 通过 WebUI 顶部切换当前使用的配置
+3. 提交到 GitHub
+4. OpenClash 用户通过订阅 URL 获取更新
 
 ## 配置文件规范
 
@@ -100,6 +115,7 @@ uv run uvicorn webui.main:app --reload
 | 路径 | 功能 |
 |------|------|
 | `/` | 仪表盘 |
+| `/configs` | 配置文件管理 |
 | `/config/dns` | DNS 设置 |
 | `/config/tun` | TUN 配置 |
 | `/config/proxy-groups` | 代理分组 |

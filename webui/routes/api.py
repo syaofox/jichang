@@ -1,12 +1,71 @@
 """API routes for HTMX updates."""
 
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse
-from typing import Dict, Any, List
 from webui.services.yaml_service import YamlService
 from webui.services.rule_service import RuleService
 
 router = APIRouter(prefix="/api", tags=["api"])
+
+
+@router.get("/configs")
+async def api_list_configs():
+    """List all configuration files."""
+    configs = YamlService.list_configs()
+    active = YamlService.get_active_config()
+    return JSONResponse(
+        content={
+            "configs": configs,
+            "active": active,
+        }
+    )
+
+
+@router.post("/configs")
+async def api_create_config(request: Request):
+    """Create a new configuration file."""
+    data = await request.json()
+    name = data.get("name", "")
+
+    if not name:
+        return JSONResponse(
+            content={"success": False, "error": "名称不能为空"}, status_code=400
+        )
+
+    if not name.endswith(".yaml"):
+        name = f"{name}.yaml"
+
+    success = YamlService.create_config(name)
+    if not success:
+        return JSONResponse(
+            content={"success": False, "error": "配置文件已存在"}, status_code=400
+        )
+
+    return JSONResponse(content={"success": True, "name": name})
+
+
+@router.delete("/configs/{name}")
+async def api_delete_config(name: str):
+    """Delete a configuration file."""
+    success = YamlService.delete_config(name)
+    if not success:
+        return JSONResponse(
+            content={"success": False, "error": "无法删除配置文件"}, status_code=400
+        )
+
+    return JSONResponse(content={"success": True})
+
+
+@router.post("/configs/{name}/activate")
+async def api_activate_config(name: str):
+    """Set a configuration as active."""
+    success = YamlService.activate_config(name)
+    if not success:
+        return JSONResponse(
+            content={"success": False, "error": "配置文件不存在"}, status_code=400
+        )
+
+    return JSONResponse(content={"success": True, "active": name})
 
 
 @router.get("/config/dns")

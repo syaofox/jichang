@@ -1,7 +1,6 @@
 """Rule file service."""
 
-from pathlib import Path
-from typing import List, Optional
+from typing import List
 from webui.config import RULES_DIR
 from webui.models.rule import Rule, RuleFile
 
