@@ -278,9 +278,33 @@ class YamlService:
         return self.save()
 
     def update_proxy_groups(self, groups: list[Dict[str, Any]]) -> bool:
-        """Update proxy groups."""
+        """Update proxy groups with name synchronization."""
         config = self.get_config()
-        config.proxy_groups = [ProxyGroup(**g) for g in groups]
+
+        old_groups_list = config.proxy_groups
+        new_groups = [ProxyGroup(**g) for g in groups]
+
+        name_mapping: dict[str, str] = {}
+        for i, new_group in enumerate(new_groups):
+            if i < len(old_groups_list):
+                old_group = old_groups_list[i]
+                if old_group.name != new_group.name:
+                    name_mapping[old_group.name] = new_group.name
+
+        if name_mapping:
+            for group in new_groups:
+                if group.proxies:
+                    group.proxies = [name_mapping.get(p, p) for p in group.proxies]
+
+            if config.rules:
+                updated_rules = []
+                for rule in config.rules:
+                    for old_name, new_name in name_mapping.items():
+                        rule = rule.replace(f",{old_name}", f",{new_name}")
+                    updated_rules.append(rule)
+                config.rules = updated_rules
+
+        config.proxy_groups = new_groups
         return self.save()
 
     def update_providers(self, providers: Dict[str, Dict[str, Any]]) -> bool:
