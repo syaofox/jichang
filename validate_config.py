@@ -58,6 +58,85 @@ TWO_PART_RULE_TYPES = {"MATCH"}
 LOGIC_RULE_TYPES = {"AND", "OR", "NOT", "SUB-RULE"}
 
 
+RULE_LIST_RULE_TYPES = {
+    "DOMAIN",
+    "DOMAIN-SUFFIX",
+    "DOMAIN-KEYWORD",
+    "DOMAIN-REGEX",
+    "GEOSITE",
+    "GEOIP",
+    "SRC-GEOIP",
+    "IP-CIDR",
+    "IP-CIDR6",
+    "SRC-IP-CIDR",
+    "IP-SUFFIX",
+    "IP-ASN",
+    "SRC-IP-ASN",
+    "DST-PORT",
+    "SRC-PORT",
+    "PROCESS-NAME",
+    "PROCESS-NAME-REGEX",
+    "PROCESS-PATH",
+    "PROCESS-PATH-REGEX",
+    "UID",
+    "NETWORK",
+    "DSCP",
+    "IN-PORT",
+    "IN-TYPE",
+    "IN-USER",
+    "IN-NAME",
+    "IPSET",
+    "SCRIPT",
+}
+
+RULE_LIST_NO_RESOLVE_TYPES = {
+    "GEOIP",
+    "SRC-GEOIP",
+    "IP-CIDR",
+    "IP-CIDR6",
+    "IPSET",
+}
+
+
+def validate_rule_provider_files(rule_providers_dir, errors, warnings):
+    rp_file_count = 0
+    rp_line_count = 0
+    for rp_file in sorted(rule_providers_dir.glob("*.list")):
+        rp_file_count += 1
+        try:
+            with open(rp_file, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+        except Exception as e:
+            errors.append(f"{rp_file}: 无法读取文件: {e}")
+            continue
+
+        for i, line in enumerate(lines, 1):
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            rp_line_count += 1
+            if stripped.startswith("-"):
+                stripped = stripped.lstrip("- ").strip()
+
+            parts = [p.strip() for p in stripped.split(",")]
+            rule_type = parts[0].upper()
+            parts_count = len(parts)
+
+            if rule_type not in RULE_LIST_RULE_TYPES:
+                errors.append(f"{rp_file}:{i} 未知规则类型「{rule_type}」: {stripped}")
+                continue
+
+            if rule_type in RULE_LIST_NO_RESOLVE_TYPES:
+                if parts_count < 2:
+                    warnings.append(f"{rp_file}:{i} 格式异常: {stripped}")
+                elif parts_count > 2 and parts[2].lower() != "no-resolve":
+                    warnings.append(f"{rp_file}:{i} 未知参数「{parts[2]}」: {stripped}")
+            else:
+                if parts_count < 2:
+                    warnings.append(f"{rp_file}:{i} 格式异常: {stripped}")
+    return rp_file_count, rp_line_count
+
+
 def build_line_index(raw_lines):
     group_index = {}
     rule_index = []
@@ -243,10 +322,21 @@ def main():
             if rule_proxy and rule_proxy not in all_proxy_refs:
                 errors.append(f"{config_path}:{line} 引用的代理「{rule_proxy}」不存在")
 
+    rp_file_count = 0
+    rp_line_count = 0
+    if not args.no_check_rules:
+        rule_providers_dir = Path(args.config_dir).parent / "rule-providers"
+        if rule_providers_dir.exists():
+            rp_file_count, rp_line_count = validate_rule_provider_files(
+                rule_providers_dir, errors, warnings
+            )
+
     print(f"文件: {config_path}")
     print(f"分组数: {len(proxy_groups)}")
     print(f"代理数: {len(proxies)}")
     print(f"规则数: {len([r for r in rules if r.strip() and not r.startswith('#')])}")
+    if rp_file_count > 0:
+        print(f"规则文件: {rp_file_count} 个, {rp_line_count} 条规则")
     print()
 
     if warnings:

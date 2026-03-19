@@ -42,13 +42,13 @@ python validate_config.py dns-origin.yaml
 
 ### Linting (if configured)
 ```bash
-ruff check .
-ruff format .
+uvx ruff check .
+uvx ruff format .
 ```
 
 ### Type Checking
 ```bash
-mypy validate_config.py
+uvx mypy validate_config.py
 ```
 
 ## Code Style Guidelines
