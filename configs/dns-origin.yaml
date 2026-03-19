@@ -174,14 +174,14 @@ rule-anchor:
 rule-providers: 
   fakeipfilter_domain: {<<: *domain, url: "https://raw.githubusercontent.com/wwqgtxx/clash-rules/release/fakeip-filter.mrs"}
   private_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/private.mrs"}
-  proxylite: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/refs/heads/main/rules/proxy.list"}
-  manhuagui: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/refs/heads/main/rules/manhuagui.list"}
-  x18comic: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/refs/heads/main/rules/18comic.list"}
-  domestic: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/refs/heads/main/rules/domestic.list"}
-  dmm: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/refs/heads/main/rules/dmm.list"}
-  javdb: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/refs/heads/main/rules/javdb.list"}
-  pikpak: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/refs/heads/main/rules/pikpak.list"}
-  opencode: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/refs/heads/main/rules/opencode.list"}
+  proxylite: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/refs/heads/main/rule-providers/proxy.list"}
+  manhuagui: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/refs/heads/main/rule-providers/manhuagui.list"}
+  x18comic: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/refs/heads/main/rule-providers/18comic.list"}
+  domestic: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/refs/heads/main/rule-providers/domestic.list"}
+  dmm: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/refs/heads/main/rule-providers/dmm.list"}
+  javdb: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/refs/heads/main/rule-providers/javdb.list"}
+  pikpak: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/refs/heads/main/rule-providers/pikpak.list"}
+  opencode: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/refs/heads/main/rule-providers/opencode.list"}
   ai: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ai-!cn.mrs" }
   youtube_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/youtube.mrs"}
   google_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs"}
