@@ -48,6 +48,10 @@ NO_RESOLVE_RULE_TYPES = {
     "SRC-GEOIP",
     "IP-CIDR",
     "IP-CIDR6",
+    "SRC-IP-CIDR",
+    "IP-SUFFIX",
+    "IP-ASN",
+    "SRC-IP-ASN",
     "IPSET",
     "RULE-SET",
     "SCRIPT",
@@ -86,6 +90,7 @@ RULE_LIST_RULE_TYPES = {
     "IN-USER",
     "IN-NAME",
     "IPSET",
+    "RULE-SET",
     "SCRIPT",
 }
 
@@ -94,6 +99,10 @@ RULE_LIST_NO_RESOLVE_TYPES = {
     "SRC-GEOIP",
     "IP-CIDR",
     "IP-CIDR6",
+    "SRC-IP-CIDR",
+    "IP-SUFFIX",
+    "IP-ASN",
+    "SRC-IP-ASN",
     "IPSET",
 }
 
