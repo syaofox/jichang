@@ -234,10 +234,18 @@ class YamlService:
 
         return raw
 
-    def save(self) -> bool:
-        """Save configuration to file."""
+    def save(self) -> tuple[bool, list[str]]:
+        """Save configuration to file with validation.
+
+        Returns:
+            tuple: (success, error_messages)
+        """
         if self._config is None:
-            return False
+            return False, ["配置未加载"]
+
+        errors = self.validate_config()
+        if errors:
+            return False, errors
 
         if self._yaml_file is None:
             self._yaml_file = Path(CONFIGS_DIR) / get_active_config_name()
@@ -249,9 +257,50 @@ class YamlService:
                 raw, f, allow_unicode=True, default_flow_style=False, sort_keys=False
             )
 
-        return True
+        return True, []
 
-    def update_dns(self, dns_data: Dict[str, Any]) -> bool:
+    def validate_config(self) -> list[str]:
+        """Validate configuration for consistency.
+
+        Returns:
+            list of error messages, empty if valid
+        """
+        if self._config is None:
+            return []
+
+        errors = []
+        group_names = {g.name for g in self._config.proxy_groups}
+        proxy_names = {
+            p.get("name") for p in self._config.proxies if isinstance(p, dict)
+        }
+        provider_names = set(self._config.proxy_providers.keys())
+        all_proxy_refs = group_names | proxy_names | provider_names
+        all_proxy_refs.add("DIRECT")
+        all_proxy_refs.add("REJECT")
+
+        for i, group in enumerate(self._config.proxy_groups):
+            if group.proxies:
+                for proxy in group.proxies:
+                    if proxy not in all_proxy_refs:
+                        errors.append(
+                            f"分组「{group.name}」中的代理引用「{proxy}」不存在"
+                        )
+
+        for i, rule in enumerate(self._config.rules or []):
+            if not rule.strip() or rule.startswith("#"):
+                continue
+            parts = rule.split(",")
+            if len(parts) < 3:
+                continue
+            rule_proxy = parts[-1].strip()
+            if rule_proxy.lower() == "no-resolve":
+                rule_proxy = parts[-2].strip() if len(parts) >= 2 else ""
+            if rule_proxy and rule_proxy not in all_proxy_refs:
+                errors.append(f"规则 #{i + 1} 引用的代理「{rule_proxy}」不存在")
+
+        return errors
+
+    def update_dns(self, dns_data: Dict[str, Any]) -> tuple[bool, list[str]]:
         """Update DNS configuration."""
         config = self.get_config()
         for key, value in dns_data.items():
@@ -259,7 +308,7 @@ class YamlService:
                 setattr(config.dns, key, value)
         return self.save()
 
-    def update_tun(self, tun_data: Dict[str, Any]) -> bool:
+    def update_tun(self, tun_data: Dict[str, Any]) -> tuple[bool, list[str]]:
         """Update TUN configuration."""
         config = self.get_config()
         for key, value in tun_data.items():
@@ -267,7 +316,7 @@ class YamlService:
                 setattr(config.tun, key, value)
         return self.save()
 
-    def update_sniffer(self, sniffer_data: Dict[str, Any]) -> bool:
+    def update_sniffer(self, sniffer_data: Dict[str, Any]) -> tuple[bool, list[str]]:
         """Update sniffer configuration."""
         config = self.get_config()
         if config.sniffer is None:
@@ -277,7 +326,9 @@ class YamlService:
                 setattr(config.sniffer, key, value)
         return self.save()
 
-    def update_proxy_groups(self, groups: list[Dict[str, Any]]) -> bool:
+    def update_proxy_groups(
+        self, groups: list[Dict[str, Any]]
+    ) -> tuple[bool, list[str]]:
         """Update proxy groups with name synchronization."""
         config = self.get_config()
 
@@ -307,7 +358,9 @@ class YamlService:
         config.proxy_groups = new_groups
         return self.save()
 
-    def update_providers(self, providers: Dict[str, Dict[str, Any]]) -> bool:
+    def update_providers(
+        self, providers: Dict[str, Dict[str, Any]]
+    ) -> tuple[bool, list[str]]:
         """Update proxy providers."""
         config = self.get_config()
         config.proxy_providers = {
@@ -315,7 +368,7 @@ class YamlService:
         }
         return self.save()
 
-    def update_rules(self, rules: list[str]) -> bool:
+    def update_rules(self, rules: list[str]) -> tuple[bool, list[str]]:
         """Update rules list."""
         config = self.get_config()
         config.rules = rules

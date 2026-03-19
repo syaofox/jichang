@@ -104,7 +104,11 @@ async def api_update_dns(request: Request):
             else:
                 dns_data[attr] = value
 
-    yaml_service.update_dns(dns_data)
+    success, errors = yaml_service.update_dns(dns_data)
+    if not success:
+        return JSONResponse(
+            content={"success": False, "errors": errors}, status_code=400
+        )
     config = yaml_service.get_config()
     return HTMLResponse(content=_render_dns_partial(config))
 
@@ -137,7 +141,11 @@ async def api_update_tun(request: Request):
             else:
                 tun_data[attr] = value
 
-    yaml_service.update_tun(tun_data)
+    success, errors = yaml_service.update_tun(tun_data)
+    if not success:
+        return JSONResponse(
+            content={"success": False, "errors": errors}, status_code=400
+        )
     config = yaml_service.get_config()
     return HTMLResponse(content=_render_tun_partial(config))
 
@@ -156,7 +164,11 @@ async def api_update_proxy_groups(request: Request):
     yaml_service = YamlService()
     data = await request.json()
 
-    yaml_service.update_proxy_groups(data)
+    success, errors = yaml_service.update_proxy_groups(data)
+    if not success:
+        return JSONResponse(
+            content={"success": False, "errors": errors}, status_code=400
+        )
     config = yaml_service.get_config()
     return HTMLResponse(content=_render_proxy_groups_partial(config))
 
@@ -175,7 +187,11 @@ async def api_update_providers(request: Request):
     yaml_service = YamlService()
     data = await request.json()
 
-    yaml_service.update_providers(data)
+    success, errors = yaml_service.update_providers(data)
+    if not success:
+        return JSONResponse(
+            content={"success": False, "errors": errors}, status_code=400
+        )
     config = yaml_service.get_config()
     return HTMLResponse(content=_render_providers_partial(config))
 

@@ -68,7 +68,7 @@
     </div>
 </div>
 
-<div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
     <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-auto">
         <div class="flex justify-between items-center p-4 border-b">
             <h3 class="text-lg font-medium">编辑代理分组</h3>
@@ -79,6 +79,7 @@
             </button>
         </div>
         <form id="edit-form" class="p-4 space-y-4">
+            <div id="error-messages" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"></div>
             <input type="hidden" id="group-index" value="">
             <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -137,6 +138,9 @@ document.getElementById('btn-cancel-modal').addEventListener('click', closeEditM
 
 document.getElementById('edit-form').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const errorDiv = document.getElementById('error-messages');
+    errorDiv.classList.add('hidden');
+    
     const index = document.getElementById('group-index').value;
     const proxies = document.getElementById('group-proxies').value.split('\n').filter(p => p.trim());
     
@@ -151,9 +155,14 @@ document.getElementById('edit-form').addEventListener('submit', async (e) => {
         body: JSON.stringify(groupData)
     });
     
+    const data = await response.json();
+    
     if (response.ok) {
         closeEditModal();
         location.reload();
+    } else {
+        errorDiv.innerHTML = data.errors.map(e => `<p>${e}</p>`).join('');
+        errorDiv.classList.remove('hidden');
     }
 });
 </script>
