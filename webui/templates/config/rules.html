@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}规则配置 - Clash Config Manager{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center gap-4">
+        <a href="/config" class="text-gray-500 hover:text-gray-700">← 配置管理</a>
+        <h1 class="text-2xl font-bold">规则配置</h1>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium mb-4">规则执行顺序</h2>
+        <div class="space-y-2">
+            {% for rule in config.rules %}
+            <div class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
+                <span class="text-gray-400 text-sm w-8">{{ loop.index }}</span>
+                <code class="flex-1 font-mono text-sm bg-gray-100 px-2 py-1 rounded truncate">{{ rule }}</code>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium mb-4">Rule Providers</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b">
+                        <th class="text-left py-2 px-3">名称</th>
+                        <th class="text-left py-2 px-3">类型</th>
+                        <th class="text-left py-2 px-3">行为</th>
+                        <th class="text-left py-2 px-3">格式</th>
+                        <th class="text-left py-2 px-3">更新间隔</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for name, provider in config.rule_providers.items() %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-2 px-3 font-mono">{{ name }}</td>
+                        <td class="py-2 px-3">{{ provider.type }}</td>
+                        <td class="py-2 px-3">{{ provider.behavior }}</td>
+                        <td class="py-2 px-3">{{ provider.format }}</td>
+                        <td class="py-2 px-3">{{ provider.interval }}秒</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

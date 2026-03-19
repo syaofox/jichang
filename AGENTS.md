@@ -6,13 +6,22 @@
 
 - **主配置**: `dns-allv2.yaml` - Clash DNS 防泄露配置
 - **规则文件**: `rules/*.list` - 路由规则列表（Clash classical 格式）
-- **无构建系统**：纯配置文件，修改后需通过 OpenClash Web UI 上传或 Git 同步
+- **WebUI**: `webui/` - 可视化管理界面
+
+## 启动方式
+
+```bash
+# WebUI
+uv run uvicorn webui.main:app --host 0.0.0.0 --port 8000
+
+# 访问 http://localhost:8000
+```
 
 ## 工作流
 
-1. 修改 `dns-allv2.yaml` 或 `rules/` 下的 `.list` 文件
+1. 通过 WebUI 或直接编辑配置文件
 2. 提交到 GitHub
-3. OpenClash 用户通过订阅 URL `https://raw.githubusercontent.com/syaofox/jichang/main/dns-allv2.yaml` 获取更新
+3. OpenClash 用户通过订阅 URL 获取更新
 
 ## 配置文件规范
 
@@ -69,6 +78,34 @@
 3. 在 `dns-allv2.yaml` 的 `rules` 中添加 RULE-SET 条目
 4. 如需单独分组，在 `proxy-groups` 中添加对应条目
 5. 确保 GitHub remote URL 使用 `@refs/heads/main` 固定分支
+
+## WebUI 开发
+
+```bash
+# 安装依赖
+uv sync
+
+# 启动开发服务器
+uv run uvicorn webui.main:app --reload
+
+# 技术栈
+# - FastAPI - 后端框架
+# - HTMX - 无刷新交互
+# - TailwindCSS - 样式
+# - Pydantic - 数据验证
+```
+
+### WebUI 路由
+
+| 路径 | 功能 |
+|------|------|
+| `/` | 仪表盘 |
+| `/config/dns` | DNS 设置 |
+| `/config/tun` | TUN 配置 |
+| `/config/proxy-groups` | 代理分组 |
+| `/config/providers` | 订阅源 |
+| `/rules` | 规则文件列表 |
+| `/rules/edit/<file>` | 规则编辑器 |
 
 ## 注意事项
 

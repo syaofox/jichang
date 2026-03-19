@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}代理分组 - Clash Config Manager{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center gap-4">
+        <a href="/config" class="text-gray-500 hover:text-gray-700">← 配置管理</a>
+        <h1 class="text-2xl font-bold">代理分组</h1>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="proxy-groups-grid">
+            {% for group in config.proxy_groups %}
+            <div class="proxy-group-card bg-gray-50 p-4 rounded-lg border" data-index="{{ loop.index0 }}">
+                <div class="flex justify-between items-start mb-3">
+                    <h3 class="font-medium">{{ group.name }}</h3>
+                    <span class="text-xs px-2 py-1 rounded {% if group.type == 'select' %}bg-blue-100 text-blue-800{% elif group.type == 'url-test' %}bg-green-100 text-green-800{% else %}bg-gray-200 text-gray-800{% endif %}">
+                        {{ group.type }}
+                    </span>
+                </div>
+                
+                <div class="text-sm text-gray-600 mb-2">
+                    {% if group.include_all %}
+                    <span class="text-xs bg-purple-100 px-2 py-0.5 rounded">include-all</span>
+                    {% endif %}
+                    {% if group.filter %}
+                    <span class="text-xs bg-orange-100 px-2 py-0.5 rounded ml-1">filter</span>
+                    {% endif %}
+                </div>
+
+                {% if group.proxies %}
+                <div class="proxy-list text-xs space-y-1 max-h-32 overflow-y-auto">
+                    {% for proxy in group.proxies[:5] %}
+                    <div class="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">
+                        <span class="text-gray-400">{{ loop.index }}</span>
+                        <span class="font-mono truncate">{{ proxy }}</span>
+                    </div>
+                    {% endfor %}
+                    {% if group.proxies|length > 5 %}
+                    <div class="text-gray-500 text-center py-1">... 还有 {{ group.proxies|length - 5 }} 个</div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="text-gray-400 text-sm">无节点</div>
+                {% endif %}
+
+                <div class="mt-3 pt-3 border-t flex justify-between items-center">
+                    <span class="text-xs text-gray-500">{{ group.proxies|length if group.proxies else 0 }} 个节点</span>
+                    <button onclick="editGroup({{ loop.index0 }}, '{{ group.name }}', '{{ group.type }}', '{{ group.filter|default('') }}')" class="text-blue-600 hover:text-blue-800 text-sm">编辑</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium mb-4">国家/地区节点</h2>
+        <div class="flex flex-wrap gap-2">
+            {% for group in config.proxy_groups %}
+                {% if '🇭🇰' in group.name or '🇹🇼' in group.name or '🇯🇵' in group.name or '🇰🇷' in group.name or '🇸🇬' in group.name or '🇺🇲' in group.name %}
+                <span class="px-3 py-1 bg-gray-100 rounded-full text-sm">
+                    {{ group.name }}
+                </span>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-auto">
+        <div class="flex justify-between items-center p-4 border-b">
+            <h3 class="text-lg font-medium">编辑代理分组</h3>
+            <button id="btn-close-modal" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <form id="edit-form" class="p-4 space-y-4">
+            <input type="hidden" id="group-index" value="">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">分组名称</label>
+                    <input type="text" id="group-name" class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">类型</label>
+                    <select id="group-type" class="w-full px-3 py-2 border rounded-lg">
+                        <option value="select">select</option>
+                        <option value="url-test">url-test</option>
+                        <option value="fallback">fallback</option>
+                        <option value="load-balance">load-balance</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Filter (可选)</label>
+                <input type="text" id="group-filter" class="w-full px-3 py-2 border rounded-lg font-mono text-sm"
+                    placeholder="(?=.*(港|HK))^((?!(台|日|韩)).)*$">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">代理节点 (每行一个)</label>
+                <textarea id="group-proxies" rows="8" class="w-full px-3 py-2 border rounded-lg font-mono text-sm"></textarea>
+            </div>
+            <div class="flex justify-end gap-2 pt-4">
+                <button type="button" id="btn-cancel-modal" class="px-4 py-2 border rounded-lg hover:bg-gray-50">取消</button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const groupData = {{ proxy_groups_json|tojson }};
+
+function editGroup(index, name, type, filter) {
+    document.getElementById('group-index').value = index;
+    document.getElementById('group-name').value = name;
+    document.getElementById('group-type').value = type;
+    document.getElementById('group-filter').value = filter || '';
+    document.getElementById('group-proxies').value = (groupData[index].proxies || []).join('\n');
+    document.getElementById('edit-modal').classList.remove('hidden');
+}
+
+function closeEditModal() {
+    document.getElementById('edit-modal').classList.add('hidden');
+}
+
+document.getElementById('edit-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'edit-modal') closeEditModal();
+});
+
+document.getElementById('btn-close-modal').addEventListener('click', closeEditModal);
+document.getElementById('btn-cancel-modal').addEventListener('click', closeEditModal);
+
+document.getElementById('edit-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const index = document.getElementById('group-index').value;
+    const proxies = document.getElementById('group-proxies').value.split('\n').filter(p => p.trim());
+    
+    groupData[index].name = document.getElementById('group-name').value;
+    groupData[index].type = document.getElementById('group-type').value;
+    groupData[index].filter = document.getElementById('group-filter').value || null;
+    groupData[index].proxies = proxies;
+    
+    const response = await fetch('/api/config/proxy-groups', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(groupData)
+    });
+    
+    if (response.ok) {
+        closeEditModal();
+        location.reload();
+    }
+});
+</script>
+
+{% endblock %}

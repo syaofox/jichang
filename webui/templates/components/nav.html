@@ -1,0 +1,32 @@
+<nav class="bg-gray-800 text-white shadow-lg">
+    <div class="container mx-auto px-4">
+        <div class="flex items-center justify-between h-16">
+            <div class="flex items-center gap-8">
+                <a href="/" class="text-xl font-bold">🛡️ Clash Manager</a>
+                <div class="hidden md:flex gap-4">
+                    <a href="/" class="hover:text-blue-300 px-3 py-2 rounded {% if request.url.path == '/' %}bg-gray-700{% endif %}">
+                        仪表盘
+                    </a>
+                    <div class="relative group">
+                        <button class="hover:text-blue-300 px-3 py-2 rounded {% if '/config' in request.url.path %}bg-gray-700{% endif %}">
+                            配置管理 ▾
+                        </button>
+                        <div class="absolute hidden group-hover:block bg-gray-700 rounded shadow-lg mt-1 min-w-[160px]">
+                            <a href="/config/dns" class="block px-4 py-2 hover:bg-gray-600 {% if request.url.path == '/config/dns' %}bg-gray-600{% endif %}">DNS 设置</a>
+                            <a href="/config/tun" class="block px-4 py-2 hover:bg-gray-600 {% if request.url.path == '/config/tun' %}bg-gray-600{% endif %}">TUN 设置</a>
+                            <a href="/config/proxy-groups" class="block px-4 py-2 hover:bg-gray-600 {% if request.url.path == '/config/proxy-groups' %}bg-gray-600{% endif %}">代理分组</a>
+                            <a href="/config/providers" class="block px-4 py-2 hover:bg-gray-600 {% if request.url.path == '/config/providers' %}bg-gray-600{% endif %}">订阅源</a>
+                            <a href="/config/rules" class="block px-4 py-2 hover:bg-gray-600 {% if request.url.path == '/config/rules' %}bg-gray-600{% endif %}">规则配置</a>
+                        </div>
+                    </div>
+                    <a href="/rules" class="hover:text-blue-300 px-3 py-2 rounded {% if '/rules' in request.url.path %}bg-gray-700{% endif %}">
+                        规则文件
+                    </a>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-400">{{ stats.proxy_groups if stats else '' }} 分组</span>
+            </div>
+        </div>
+    </div>
+</nav>

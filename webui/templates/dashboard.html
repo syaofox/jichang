@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}仪表盘 - Clash Config Manager{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <h1 class="text-2xl font-bold">仪表盘</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-3xl font-bold text-blue-600">{{ stats.proxy_groups }}</div>
+            <div class="text-gray-600">代理分组</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-3xl font-bold text-green-600">{{ stats.rule_providers }}</div>
+            <div class="text-gray-600">规则集</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-3xl font-bold text-purple-600">{{ stats.rule_files }}</div>
+            <div class="text-gray-600">规则文件</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-3xl font-bold text-orange-600">{{ stats.total_rules }}</div>
+            <div class="text-gray-600">自定义规则</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-medium mb-4">快速配置</h2>
+            <div class="grid grid-cols-2 gap-3">
+                <a href="/config/dns" class="p-4 border rounded-lg hover:bg-gray-50 flex items-center gap-3">
+                    <span class="text-2xl">🌐</span>
+                    <div>
+                        <div class="font-medium">DNS 设置</div>
+                        <div class="text-sm text-gray-500">Nameserver / Fake-IP</div>
+                    </div>
+                </a>
+                <a href="/config/tun" class="p-4 border rounded-lg hover:bg-gray-50 flex items-center gap-3">
+                    <span class="text-2xl">🔧</span>
+                    <div>
+                        <div class="font-medium">TUN 配置</div>
+                        <div class="text-sm text-gray-500">入站 / 路由模式</div>
+                    </div>
+                </a>
+                <a href="/config/proxy-groups" class="p-4 border rounded-lg hover:bg-gray-50 flex items-center gap-3">
+                    <span class="text-2xl">🔀</span>
+                    <div>
+                        <div class="font-medium">代理分组</div>
+                        <div class="text-sm text-gray-500">节点优先级</div>
+                    </div>
+                </a>
+                <a href="/rules" class="p-4 border rounded-lg hover:bg-gray-50 flex items-center gap-3">
+                    <span class="text-2xl">📋</span>
+                    <div>
+                        <div class="font-medium">规则管理</div>
+                        <div class="text-sm text-gray-500">自定义规则列表</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-medium mb-4">配置概览</h2>
+            <div class="space-y-3 text-sm">
+                <div class="flex justify-between items-center py-2 border-b">
+                    <span class="text-gray-600">混合端口</span>
+                    <span class="font-mono">{{ config.mixed_port }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b">
+                    <span class="text-gray-600">DNS 监听</span>
+                    <span class="font-mono">{{ config.dns.listen }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b">
+                    <span class="text-gray-600">DNS 模式</span>
+                    <span class="font-mono">{{ config.dns.enhanced_mode }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b">
+                    <span class="text-gray-600">TUN Stack</span>
+                    <span class="font-mono">{{ config.tun.stack }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                    <span class="text-gray-600">日志级别</span>
+                    <span class="font-mono">{{ config.log_level }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium mb-4">规则文件</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {% for rf in rule_files %}
+            <a href="/rules/edit/{{ rf.name }}" class="p-3 border rounded-lg hover:bg-gray-50">
+                <div class="font-medium">{{ rf.name }}</div>
+                <div class="text-sm text-gray-500">{{ rf.rules|length }} 条规则</div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium mb-4">代理分组</h2>
+        <div class="flex flex-wrap gap-2">
+            {% for group in config.proxy_groups[:12] %}
+            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                {{ group.name }}
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
