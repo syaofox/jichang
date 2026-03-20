@@ -360,3 +360,19 @@ input:focus, textarea:focus, select:focus {
 .proxies-list .tag .remove:hover {
     opacity: 1;
 }
+
+.proxies-list .tag[draggable="true"] {
+    cursor: grab;
+}
+
+.proxies-list .tag[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+.proxies-list .tag.dragging {
+    opacity: 0.5;
+}
+
+.proxies-list .tag.drag-over {
+    border-left: 2px solid var(--accent);
+}

@@ -170,8 +170,8 @@ function renderProxyGroups() {
                 </select>
             </td>
             <td>
-                <div class="proxies-list">
-                    ${(g.proxies || []).map((p, j) => `<span class="tag">${escHtml(p)}<span class="remove" onclick="removeProxy(${i}, ${j})">×</span></span>`).join("")}
+                <div class="proxies-list" data-group-index="${i}">
+                    ${(g.proxies || []).map((p, j) => `<span class="tag" draggable="true" data-group-index="${i}" data-proxy-index="${j}" ondragstart="onProxyDragStart(event)" ondragover="onProxyDragOver(event)" ondrop="onProxyDrop(event)" ondragend="onProxyDragEnd(event)">${escHtml(p)}<span class="remove" onclick="removeProxy(${i}, ${j})">×</span></span>`).join("")}
                     <button class="btn-sm btn-icon" onclick="addProxy(${i})">+</button>
                 </div>
             </td>
@@ -184,6 +184,44 @@ function renderProxyGroups() {
     `
         )
         .join("");
+}
+
+// 代理拖动排序
+let draggedProxy = null;
+
+function onProxyDragStart(e) {
+    draggedProxy = {
+        groupIndex: parseInt(e.target.dataset.groupIndex),
+        proxyIndex: parseInt(e.target.dataset.proxyIndex),
+    };
+    e.target.classList.add("dragging");
+    e.dataTransfer.effectAllowed = "move";
+}
+
+function onProxyDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+}
+
+function onProxyDrop(e) {
+    e.preventDefault();
+    if (!draggedProxy) return;
+
+    const targetGroupIndex = parseInt(e.target.dataset.groupIndex);
+    const targetProxyIndex = parseInt(e.target.dataset.proxyIndex);
+
+    if (draggedProxy.groupIndex !== targetGroupIndex) return;
+
+    const proxies = state.configData["proxy-groups"][targetGroupIndex].proxies;
+    const [moved] = proxies.splice(draggedProxy.proxyIndex, 1);
+    proxies.splice(targetProxyIndex, 0, moved);
+
+    renderProxyGroups();
+}
+
+function onProxyDragEnd(e) {
+    e.target.classList.remove("dragging");
+    draggedProxy = null;
 }
 
 // 更新分组
