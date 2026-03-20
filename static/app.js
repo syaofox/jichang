@@ -336,8 +336,8 @@ function renderRules() {
         .map((r, i) => {
             const parts = r.split(",").map((p) => p.trim());
             return `
-        <tr>
-            <td>${i + 1}</td>
+        <tr draggable="true" data-rule-index="${i}" ondragstart="onRuleDragStart(event)" ondragover="onRuleDragOver(event)" ondrop="onRuleDrop(event)" ondragend="onRuleDragEnd(event)">
+            <td class="drag-handle">☰ ${i + 1}</td>
             <td>
                 <select onchange="updateRuleType(${i}, this.value)">
                     ${state.structure.rule_types.map((t) => `<option${parts[0] === t ? " selected" : ""}>${t}</option>`).join("")}
@@ -355,6 +355,42 @@ function renderRules() {
     `;
         })
         .join("");
+}
+
+// 规则拖动排序
+let draggedRuleIndex = null;
+
+function onRuleDragStart(e) {
+    draggedRuleIndex = parseInt(e.target.dataset.ruleIndex);
+    e.target.classList.add("dragging");
+    e.dataTransfer.effectAllowed = "move";
+}
+
+function onRuleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+}
+
+function onRuleDrop(e) {
+    e.preventDefault();
+    if (draggedRuleIndex === null) return;
+
+    const targetRow = e.target.closest("tr");
+    if (!targetRow) return;
+
+    const targetIndex = parseInt(targetRow.dataset.ruleIndex);
+    if (draggedRuleIndex === targetIndex) return;
+
+    const rules = state.configData.rules;
+    const [moved] = rules.splice(draggedRuleIndex, 1);
+    rules.splice(targetIndex, 0, moved);
+
+    renderRules();
+}
+
+function onRuleDragEnd(e) {
+    e.target.classList.remove("dragging");
+    draggedRuleIndex = null;
 }
 
 // 更新规则
@@ -568,8 +604,15 @@ function yamlValue(val) {
     if (typeof val === "boolean") return val ? "true" : "false";
     if (typeof val === "number") return String(val);
     const str = String(val);
-    if (str.includes(":") || str.includes("#") || str.includes("'") || str.includes('"') || str.startsWith(" ") || str.endsWith(" ")) {
-        return `"${str.replace(/"/g, '\\"')}"`;
+    // 需要引号的特殊字符: : # ' " * & @ % ! | > { } [ ] ,
+    if (str === "" || str.includes(":") || str.includes("#") || str.includes("'") || str.includes('"') ||
+        str.includes("*") || str.includes("&") || str.includes("@") || str.includes("%") ||
+        str.includes("!") || str.includes("|") || str.includes(">") ||
+        str.includes("{") || str.includes("}") || str.includes("[") || str.includes("]") ||
+        str.startsWith(" ") || str.endsWith(" ") ||
+        str === "true" || str === "false" || str === "null" || str === "yes" || str === "no" ||
+        str === "on" || str === "off" || !isNaN(Number(str))) {
+        return `"${str.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
     }
     return str;
 }

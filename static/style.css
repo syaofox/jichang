@@ -250,6 +250,28 @@ td {
     font-size: 0.875rem;
 }
 
+#rules-body tr[draggable="true"] {
+    cursor: grab;
+}
+
+#rules-body tr[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+#rules-body tr.dragging {
+    opacity: 0.5;
+}
+
+#rules-body tr.drag-over {
+    border-top: 2px solid var(--accent);
+}
+
+.drag-handle {
+    cursor: grab;
+    color: var(--text-muted);
+    user-select: none;
+}
+
 input, textarea {
     background: var(--bg);
     color: var(--text);
