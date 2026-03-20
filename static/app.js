@@ -44,7 +44,11 @@ async function init() {
         renderRuleFileList();
         populateConfigSelects();
         if (configs.length > 0) {
-            loadConfig(configs[0].name);
+            const savedConfig = localStorage.getItem("lastConfig");
+            const configToLoad = savedConfig && configs.some(c => c.name === savedConfig)
+                ? savedConfig
+                : configs[0].name;
+            loadConfig(configToLoad);
         }
     } catch (e) {
         setStatus(e.message, "error");
@@ -137,6 +141,7 @@ async function loadConfig(filename) {
         const data = await api("GET", `/config/${filename}`);
         state.currentConfig = filename;
         state.configData = data.data;
+        localStorage.setItem("lastConfig", filename);
         renderProxyGroups();
         renderRules();
         renderRuleProviders();
