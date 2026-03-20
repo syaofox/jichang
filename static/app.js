@@ -216,8 +216,20 @@ function moveGroup(index, dir) {
 
 // 添加代理到分组
 function addProxy(groupIndex) {
+    const allProxies = getAvailableProxies();
+    const currentProxies = state.configData["proxy-groups"][groupIndex].proxies || [];
+    const availableProxies = allProxies.filter(p => !currentProxies.includes(p));
+
     showModal("添加代理", `
-        <input type="text" id="proxy-name" placeholder="输入代理名称" style="width: 100%">
+        <div style="margin-bottom: 1rem">
+            <input type="text" id="proxy-search" placeholder="搜索代理..." style="width: 100%; margin-bottom: 0.5rem" oninput="filterProxyList()">
+            <div id="proxy-list" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; padding: 0.5rem">
+                ${availableProxies.map(p => `<div class="proxy-option" onclick="selectProxy('${escHtml(p)}')" style="padding: 0.5rem; cursor: pointer; border-radius: 4px" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='transparent'">${escHtml(p)}</div>`).join("")}
+            </div>
+        </div>
+        <div style="display: flex; gap: 0.5rem">
+            <input type="text" id="proxy-name" placeholder="或输入自定义代理名称" style="flex: 1">
+        </div>
     `, () => {
         const name = document.getElementById("proxy-name").value.trim();
         if (!name) return;
@@ -225,6 +237,50 @@ function addProxy(groupIndex) {
         renderProxyGroups();
         closeModal();
     });
+
+    window._selectProxy = (name) => {
+        document.getElementById("proxy-name").value = name;
+    };
+
+    window._filterProxyList = () => {
+        const search = document.getElementById("proxy-search").value.toLowerCase();
+        document.querySelectorAll(".proxy-option").forEach(el => {
+            el.style.display = el.textContent.toLowerCase().includes(search) ? "block" : "none";
+        });
+    };
+}
+
+function selectProxy(name) {
+    document.getElementById("proxy-name").value = name;
+}
+
+function filterProxyList() {
+    const search = document.getElementById("proxy-search").value.toLowerCase();
+    document.querySelectorAll(".proxy-option").forEach(el => {
+        el.style.display = el.textContent.toLowerCase().includes(search) ? "block" : "none";
+    });
+}
+
+// 获取所有可用代理
+function getAvailableProxies() {
+    const proxies = [];
+    const groups = state.configData["proxy-groups"] || [];
+    const proxyList = state.configData["proxies"] || [];
+
+    // 添加内置代理
+    proxies.push("直连", "DIRECT", "REJECT");
+
+    // 添加 proxies 列表中的代理
+    proxyList.forEach(p => {
+        if (p.name) proxies.push(p.name);
+    });
+
+    // 添加 proxy-groups 中的分组名称
+    groups.forEach(g => {
+        if (g.name) proxies.push(g.name);
+    });
+
+    return [...new Set(proxies)];
 }
 
 // 移除代理
