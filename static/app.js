@@ -513,13 +513,22 @@ async function saveCurrent() {
             const filename = document.getElementById("yaml-config-select").value;
             await api("PUT", `/config/${filename}`, { content });
             setStatus("配置已保存");
-        } else {
-            // proxy-groups, rules, rule-providers 使用同一个配置
-            const content = yamlDump(state.configData);
-            await api("PUT", `/config/${state.currentConfig}`, { content });
-            document.getElementById("yaml-editor-textarea").value = content;
-            setStatus("配置已保存");
+        } else if (activeTab === "proxy-groups") {
+            // 使用 PATCH API 保存代理分组，保留原有格式
+            await api("PATCH", `/config/${state.currentConfig}`, { proxy_groups: state.configData["proxy-groups"] });
+            setStatus("代理分组已保存");
+        } else if (activeTab === "rules") {
+            // 使用 PATCH API 保存规则，保留原有格式
+            await api("PATCH", `/config/${state.currentConfig}`, { rules: state.configData.rules });
+            setStatus("规则已保存");
+        } else if (activeTab === "rule-providers") {
+            // 使用 PATCH API 保存规则提供者，保留原有格式
+            await api("PATCH", `/config/${state.currentConfig}`, { rule_providers: state.configData["rule-providers"] });
+            setStatus("规则提供者已保存");
         }
+        // 更新 YAML 编辑器内容
+        const data = await api("GET", `/config/${state.currentConfig}`);
+        document.getElementById("yaml-editor-textarea").value = data.content;
     } catch (e) {
         setStatus(e.message, "error");
     }

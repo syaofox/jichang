@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from ruamel.yaml import YAML
 
 app = FastAPI(title="OpenClash Config Editor")
 
@@ -26,6 +27,10 @@ CONFIGS_DIR = BASE_DIR / "configs"
 RULE_PROVIDERS_DIR = BASE_DIR / "rule-providers"
 VALIDATE_SCRIPT = BASE_DIR / "validate_config.py"
 
+ruamel_yaml = YAML()
+ruamel_yaml.preserve_quotes = True
+ruamel_yaml.default_flow_style = False
+
 
 class ConfigFile(BaseModel):
     content: str
@@ -38,6 +43,12 @@ class RuleProvider(BaseModel):
 class ValidateRequest(BaseModel):
     config_file: str = "dns.yaml"
     config_dir: str = "configs"
+
+
+class PatchConfigRequest(BaseModel):
+    proxy_groups: list | None = None
+    rules: list | None = None
+    rule_providers: dict | None = None
 
 
 @app.get("/api/configs")
@@ -74,6 +85,29 @@ def save_config(filename: str, body: ConfigFile):
         raise HTTPException(400, f"YAML 语法错误: {e}")
     with open(path, "w", encoding="utf-8") as f:
         f.write(body.content)
+    return {"status": "ok"}
+
+
+@app.patch("/api/config/{filename}")
+def patch_config(filename: str, body: PatchConfigRequest):
+    """部分更新配置文件，保留原有格式."""
+    path = CONFIGS_DIR / filename
+    if not path.exists():
+        raise HTTPException(404, "配置文件不存在")
+
+    with open(path, "r", encoding="utf-8") as f:
+        data = ruamel_yaml.load(f)
+
+    if body.proxy_groups is not None:
+        data["proxy-groups"] = body.proxy_groups
+    if body.rules is not None:
+        data["rules"] = body.rules
+    if body.rule_providers is not None:
+        data["rule-providers"] = body.rule_providers
+
+    with open(path, "w", encoding="utf-8") as f:
+        ruamel_yaml.dump(data, f)
+
     return {"status": "ok"}
 
 
