@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClash 配置编辑器</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <header>
+        <h1>OpenClash 配置编辑器</h1>
+        <div class="actions">
+            <button id="btn-validate" onclick="validateConfig()">验证</button>
+            <button id="btn-save" onclick="saveCurrent()">保存</button>
+            <button onclick="location.reload()">重置</button>
+            <span id="status"></span>
+        </div>
+    </header>
+
+    <nav class="tabs">
+        <button class="tab active" data-tab="rule-files">规则文件</button>
+        <button class="tab" data-tab="proxy-groups">代理分组</button>
+        <button class="tab" data-tab="rules">规则列表</button>
+        <button class="tab" data-tab="rule-providers">规则提供者</button>
+        <button class="tab" data-tab="yaml-editor">YAML 编辑</button>
+    </nav>
+
+    <main>
+        <!-- 规则文件 Tab -->
+        <section id="rule-files" class="tab-content active">
+            <div class="split-view">
+                <div class="file-list">
+                    <h3>规则文件列表</h3>
+                    <div id="rule-file-list"></div>
+                    <button onclick="createRuleFile()">+ 新建规则文件</button>
+                </div>
+                <div class="editor-area">
+                    <div class="editor-header">
+                        <span id="current-rule-file">选择一个规则文件</span>
+                        <button id="btn-save-rule" onclick="saveRuleFile()" disabled>保存</button>
+                    </div>
+                    <textarea id="rule-editor" placeholder="选择或创建规则文件开始编辑..." disabled></textarea>
+                </div>
+            </div>
+        </section>
+
+        <!-- 代理分组 Tab -->
+        <section id="proxy-groups" class="tab-content">
+            <div class="toolbar">
+                <select id="config-file-select" onchange="loadConfig(this.value)"></select>
+                <button onclick="addProxyGroup()">+ 添加分组</button>
+            </div>
+            <table id="proxy-groups-table">
+                <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>类型</th>
+                        <th>代理列表</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="proxy-groups-body"></tbody>
+            </table>
+        </section>
+
+        <!-- 规则列表 Tab -->
+        <section id="rules" class="tab-content">
+            <div class="toolbar">
+                <select id="rules-config-select" onchange="loadConfig(this.value)"></select>
+                <button onclick="addRule()">+ 添加规则</button>
+            </div>
+            <table id="rules-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>类型</th>
+                        <th>值</th>
+                        <th>代理</th>
+                        <th>选项</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="rules-body"></tbody>
+            </table>
+        </section>
+
+        <!-- 规则提供者 Tab -->
+        <section id="rule-providers" class="tab-content">
+            <div class="toolbar">
+                <select id="rp-config-select" onchange="loadConfig(this.value)"></select>
+            </div>
+            <table id="rule-providers-table">
+                <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>类型</th>
+                        <th>行为</th>
+                        <th>格式</th>
+                        <th>URL</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="rule-providers-body"></tbody>
+            </table>
+        </section>
+
+        <!-- YAML 编辑器 Tab -->
+        <section id="yaml-editor" class="tab-content">
+            <div class="toolbar">
+                <select id="yaml-config-select" onchange="loadYaml(this.value)"></select>
+            </div>
+            <textarea id="yaml-editor-textarea" placeholder="选择配置文件开始编辑..."></textarea>
+        </section>
+    </main>
+
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="modal-title"></h3>
+            <div id="modal-body"></div>
+            <div class="modal-actions">
+                <button onclick="closeModal()">取消</button>
+                <button id="modal-confirm" onclick="confirmModal()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>

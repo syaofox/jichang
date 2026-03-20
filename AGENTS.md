@@ -4,14 +4,17 @@
 
 This is a Python CLI tool for validating OpenClash (Clash proxy) configuration files.
 It checks YAML syntax, validates proxy group references, and validates rule syntax.
+Also includes a Web UI editor for managing configurations.
 
-**Entry point:** `validate_config.py`
+**Entry points:**
+- `validate_config.py` — CLI validator
+- `api/main.py` — Web UI server
 
 ## Quick Start
 
 ```bash
-# Install dependency
-pip install pyyaml
+# Install dependencies
+pip install -r requirements.txt
 
 # Validate default config (configs/dns.yaml)
 python validate_config.py
@@ -24,6 +27,12 @@ python validate_config.py -c /path/to/configs myconfig.yaml
 
 # Skip checks
 python validate_config.py --no-check-proxies --no-check-rules
+
+# Start Web UI editor
+python api/main.py
+# Or use the startup script (auto-creates venv)
+./run.sh
+# Then open http://localhost:8000
 ```
 
 ## Commands
@@ -105,18 +114,29 @@ uvx mypy validate_config.py
 
 ```
 /mnt/github/jichang/
-├── validate_config.py     # Main entry point
+├── validate_config.py     # CLI validator
+├── api/
+│   └── main.py            # FastAPI Web UI server
+├── static/
+│   ├── index.html         # Web UI page
+│   ├── style.css          # Styles
+│   └── app.js             # Frontend logic
 ├── configs/               # Sample YAML configs
 │   ├── dns.yaml
 │   └── dns-origin.yaml
 ├── rule-providers/        # Rule provider files (*.list)
+├── requirements.txt       # Python dependencies
 ├── .gitignore
 └── AGENTS.md              # This file
 ```
 
 ## Dependency
 
-- `pyyaml` — required at runtime (install via `pip install pyyaml`)
+- `pyyaml` — YAML parsing (required for both CLI and Web UI)
+- `fastapi` — Web framework for Web UI
+- `uvicorn` — ASGI server for FastAPI
+
+Install via: `pip install -r requirements.txt`
 
 ## Notes
 
