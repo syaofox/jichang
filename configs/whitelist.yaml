@@ -4,10 +4,10 @@
 # 跑裸核用户请自行去掉下方控制面板模块的注释。
 # 机场订阅
 proxy-providers:
-  skylinx:
-    url: "https://xx"
+  ssrdog:
+    url: "xxx"
     type: http
-    interval: 864000
+    interval: 86400
     health-check:
       enable: true
       url: https://www.gstatic.com/generate_204
@@ -96,6 +96,15 @@ dns:
 # 如果相应分组没有筛选到对应的国家，请根据自己节点名字调整筛选关键字。
 # 没有再使用锚点，是考虑很多新手修改难度，这样新手修改某个分组更容易些。
 proxy-groups:
+  - {name: 🇭🇰 香港, type: select, include-all: true, filter: "(?=.*(港|HK|(?i)Hong))^((?!(台|日|韩|新|美)).)*$"}
+  - {name: 🇹🇼 台湾, type: select, include-all: true, filter: "(?=.*(台|TW|(?i)Taiwan))^((?!(港|日|韩|新|美)).)*$"}
+  - {name: 🇰🇷 韩国, type: select, include-all: true, filter: "(?=.*(韩|KR|(?i)Korea))^((?!(港|台|日|新|美)).)*$"}
+  - {name: 🇯🇵 日本, type: select, include-all: true, filter: "(?=.*(日|JP|(?i)Japan))^((?!(港|台|韩|新|美)).)*$"}
+  - {name: 🇸🇬 坡县, type: select, include-all: true, filter: "(?=.*(新加坡|坡|狮城|SG|Singapore))^((?!(台|日|韩|美|港)).)*$"}
+  - {name: 🇺🇲 美国, type: select, include-all: true, filter: "(?=.*(美|US|(?i)States|America))^((?!(港|台|韩|新|日)).)*$"}
+  - {name: 其他, type: select, include-all: true, filter: "^((?!(港|HK|Hong|日|JP|Japan|新|SG|Singapore|美|US|States|America|台|TW|Taiwan|韩|KR|Korea)).)*$"}
+  - {name: 全部, type: select, include-all: true}
+  - {name: 自动选择, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "^((?!(直连)).)*$"}
   - {name: 默认代理, type: select, proxies: [🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
   - {name: 国内补充, type: select, proxies: [直连, 🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部,自动选择]}
   - {name: 漫画柜, type: select, proxies: [🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
@@ -115,25 +124,12 @@ proxy-groups:
   - {name: Telegram, type: select, proxies: [🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
   - {name: NETFLIX, type: select, proxies: [🇸🇬 坡县, 🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
   - {name: PayPal, type: select, proxies: [🇯🇵 日本, 🇰🇷 韩国, 🇭🇰 香港, 🇹🇼 台湾, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
-  - {name: 🇭🇰 香港, type: select, include-all: true, filter: "(?=.*(港|HK|(?i)Hong))^((?!(台|日|韩|新|美)).)*$"}
-  - {name: 🇹🇼 台湾, type: select, include-all: true, filter: "(?=.*(台|TW|(?i)Taiwan))^((?!(港|日|韩|新|美)).)*$"}
-  - {name: 🇰🇷 韩国, type: select, include-all: true, filter: "(?=.*(韩|KR|(?i)Korea))^((?!(港|台|日|新|美)).)*$"}
-  - {name: 🇯🇵 日本, type: select, include-all: true, filter: "(?=.*(日|JP|(?i)Japan))^((?!(港|台|韩|新|美)).)*$"}
-  - {name: 🇸🇬 坡县, type: select, include-all: true, filter: "(?=.*(新加坡|坡|狮城|SG|Singapore))^((?!(台|日|韩|美|港)).)*$"}
-  - {name: 🇺🇲 美国, type: select, include-all: true, filter: "(?=.*(美|US|(?i)States|America))^((?!(港|台|韩|新|日)).)*$"}
-  - {name: 其他, type: select, include-all: true, filter: "^((?!(港|HK|Hong|日|JP|Japan|新|SG|Singapore|美|US|States|America|台|TW|Taiwan|韩|KR|Korea)).)*$"}
-  - {name: 全部, type: select, include-all: true}
-  - {name: 自动选择, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "^((?!(直连)).)*$"}
 
+
+# 规则匹配
 # 规则匹配 - 白名单模式（国内直连 + 其他全代理）
 rules:
 # === 最稳妥全局拦截所有 UDP 443（解决所有 QUIC 问题）===
-  # 可选例外（YouTube / Google 的 UDP 443 允许走代理）
-  # 这些规则必须放在全局 REJECT 之前
-  # - AND,((NETWORK,UDP),(DST-PORT,443),(DOMAIN-KEYWORD,youtube)),默认代理
-  # - AND,((NETWORK,UDP),(DST-PORT,443),(DOMAIN-KEYWORD,google)),默认代理
-
-  - AND,((NETWORK,UDP),(DST-PORT,443)),REJECT
   # 放在最顶部，优先级最高，不区分任何域名、IP、国家
   - AND,((NETWORK,UDP),(DST-PORT,443)),REJECT
   
