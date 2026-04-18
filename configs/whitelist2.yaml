@@ -1,7 +1,7 @@
 # 机场订阅
 proxy-providers:
   ssrdog:
-    url: "x"
+    url: "xxx"  # 替换为你的订阅链接
     type: http
     interval: 864000
     health-check:
@@ -90,34 +90,26 @@ dns:
  
 
 proxy-groups:
-  - {name: 🇭🇰 香港, type: select, include-all: true, filter: "(?=.*(港|HK|(?i)Hong))^((?!(台|日|韩|新|美)).)*$"}
-  - {name: 🇹🇼 台湾, type: select, include-all: true, filter: "(?=.*(台|TW|(?i)Taiwan))^((?!(港|日|韩|新|美)).)*$"}
-  - {name: 🇰🇷 韩国, type: select, include-all: true, filter: "(?=.*(韩|KR|(?i)Korea))^((?!(港|台|日|新|美)).)*$"}
-  - {name: 🇯🇵 日本, type: select, include-all: true, filter: "(?=.*(日|JP|(?i)Japan))^((?!(港|台|韩|新|美)).)*$"}
-  - {name: 🇸🇬 坡县, type: select, include-all: true, filter: "(?=.*(新加坡|坡|狮城|SG|Singapore))^((?!(台|日|韩|美|港)).)*$"}
-  - {name: 🇺🇲 美国, type: select, include-all: true, filter: "(?=.*(美|US|(?i)States|America))^((?!(港|台|韩|新|日)).)*$"}
-  - {name: 其他, type: select, include-all: true, filter: "^((?!(港|HK|Hong|日|JP|Japan|新|SG|Singapore|美|US|States|America|台|TW|Taiwan|韩|KR|Korea)).)*$"}
-  - {name: 全部, type: select, include-all: true}
   - {name: 自动选择, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "^((?!(直连)).)*$"}
-  - {name: 默认代理, type: select, proxies: [🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
-  - {name: 国内补充, type: select, proxies: [直连, 🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部,自动选择]}
-  - {name: 漫画柜, type: select, proxies: [🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
-  - {name: javdb, type: select, proxies: [🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
-  - {name: 禁漫天堂, type: select, proxies: [🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
-  - {name: dmm, type: select, proxies: [🇯🇵 日本, 🇰🇷 韩国, 🇭🇰 香港, 🇹🇼 台湾, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
-  - {name: pikpak, type: select, proxies: [🇸🇬 坡县, 🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
-  - {name: opencode, type: select, proxies: [🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
-  - {name: 漏网之鱼, type: select, proxies: [默认代理, 🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部,直连,自动选择]}
-  - {name: YouTube, type: select, proxies: [🇯🇵 日本, 🇰🇷 韩国, 🇭🇰 香港, 🇹🇼 台湾, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
-  - {name: Google, type: select, proxies: [🇯🇵 日本, 🇰🇷 韩国, 🇭🇰 香港, 🇹🇼 台湾, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
-  - {name: AI, type: select, proxies: [🇯🇵 日本, 🇰🇷 韩国, 🇭🇰 香港, 🇹🇼 台湾, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
-  - {name: GitHub, type: select, proxies: [🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
-  - {name: OneDrive, type: select, proxies: [🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
-  - {name: Microsoft, type: select, proxies: [🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
-  - {name: TikTok, type: select, proxies: [🇯🇵 日本, 🇰🇷 韩国, 🇭🇰 香港, 🇹🇼 台湾, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
-  - {name: Telegram, type: select, proxies: [🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
-  - {name: NETFLIX, type: select, proxies: [🇸🇬 坡县, 🇭🇰 香港, 🇹🇼 台湾, 🇯🇵 日本, 🇰🇷 韩国, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
-  - {name: PayPal, type: select, proxies: [🇯🇵 日本, 🇰🇷 韩国, 🇭🇰 香港, 🇹🇼 台湾, 🇸🇬 坡县, 🇺🇲 美国,其他, 全部, 直连,自动选择]}
+  - {name: 默认代理, type: select, proxies: [include-all: true,自动选择]}
+  - {name: 国内补充, type: select, proxies: [include-all: true,自动选择]}
+  - {name: 漫画柜, type: select, proxies: [include-all: true,自动选择]}
+  - {name: javdb, type: select, proxies: [include-all: true,自动选择]}
+  - {name: 禁漫天堂, type: select, proxies: [include-all: true,自动选择]}
+  - {name: dmm, type: select, proxies: [include-all: true,自动选择]}
+  - {name: pikpak, type: select, proxies: [include-all: true,自动选择]}
+  - {name: opencode, type: select, proxies: [include-all: true,自动选择]}  
+  - {name: YouTube, type: select, proxies: [include-all: true,自动选择]}
+  - {name: Google, type: select, proxies: [include-all: true,自动选择]}
+  - {name: AI, type: select, proxies: [include-all: true,自动选择]}
+  - {name: GitHub, type: select, proxies: [include-all: true,自动选择]}
+  - {name: OneDrive, type: select, proxies: [include-all: true,自动选择]}
+  - {name: Microsoft, type: select, proxies: [include-all: true,自动选择]}
+  - {name: TikTok, type: select, proxies: [include-all: true,自动选择]}
+  - {name: Telegram, type: select, proxies: [include-all: true,自动选择]}
+  - {name: NETFLIX, type: select, proxies: [include-all: true,自动选择]}
+  - {name: PayPal, type: select, proxies: [include-all: true,自动选择]}
+  - {name: 漏网之鱼, type: select, proxies: [include-all: true,自动选择]}
 
 
 # 规则匹配
