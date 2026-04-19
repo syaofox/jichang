@@ -112,10 +112,9 @@ rules:
   - RULE-SET,google_ip,Google
   - RULE-SET,netflix_ip,NETFLIX
   - RULE-SET,telegram_ip,Telegram
-  
-  # 非国内全走代理
-  - RULE-SET,geolocation-!cn,默认代理     # 修正：原为不存在的“国内直连”
-  
+   
+   # 地理位置规则，放在最后以覆盖前面的规则，确保国内流量走直连
+  - GEOSITE,geolocation-cn,DIRECT
   # 最终兜底
   - MATCH,默认代理
 

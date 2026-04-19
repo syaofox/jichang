@@ -1,0 +1,139 @@
+# 机场订阅
+proxy-providers:
+  ssrdog:
+    url: "xxx" # 替换为你的机场订阅链接
+    type: http
+    interval: 864000
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      interval: 300
+    proxy: DIRECT
+
+# 全局配置 
+mixed-port: 7890
+geodata-mode: true
+allow-lan: true
+bind-address: "*"
+ipv6: false
+unified-delay: true
+tcp-concurrent: true
+log-level: warning
+global-client-fingerprint: chrome
+keep-alive-idle: 600
+keep-alive-interval: 15
+profile: {store-selected: true, store-fake-ip: true}
+
+# 嗅探
+sniffer:
+  enable: true
+  sniff:
+    HTTP: {ports: [80, 8080-8880], override-destination: true}
+    TLS: {ports: [443, 8443]}
+  skip-domain: ["Mijia Cloud", "+.push.apple.com"]
+
+# 入站
+tun:
+  enable: true
+  stack: mixed
+  dns-hijack: ["any:53", "tcp://any:53"]
+  auto-route: false
+  auto-redirect: false
+  auto-detect-interface: false
+
+# DNS模块
+dns:
+  enable: true
+  cache-algorithm: arc
+  listen: 0.0.0.0:1053
+  ipv6: false
+  respect-rules: true
+  enhanced-mode: fake-ip
+  fake-ip-range: 28.0.0.1/8
+  fake-ip-filter-mode: blacklist
+  default-nameserver: [https://223.5.5.5/dns-query]
+  proxy-server-nameserver: [https://dns.alidns.com/dns-query, https://doh.pub/dns-query]
+  direct-nameserver: [https://dns.alidns.com/dns-query, https://doh.pub/dns-query]
+  nameserver: ["https://8.8.8.8/dns-query#RULES&ecs=223.5.5.0/24"]
+  fake-ip-filter: ["rule-set:fakeipfilter_domain"]
+
+proxy-groups:
+  # - {name: 自动选择, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "^((?!(DIRECT|GB|Traffic|Expire)).)*$"}
+  - {name: 默认代理, type: select, proxies: [DIRECT, REJECT], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: 国内直连, type: select, proxies: [DIRECT, REJECT, 默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: 漫画柜, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: JavDB, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: 禁漫天堂, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: DMM, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: PickPak, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: OpenCode, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: YouTube, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: Google, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: AI, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: GitHub, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: OneDrive, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: Microsoft, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: Apple, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: TikTok, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: Telegram, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: NETFLIX, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: PayPal, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+
+
+# 规则匹配
+rules:
+  # 1. 拦截 UDP 443 (可选，防止部分应用走 QUIC 绕过分流)
+  - AND,((NETWORK,UDP),(DST-PORT,443)),REJECT
+
+  # 2. 基础局域网/私有地址直连
+  - GEOSITE,private,国内直连
+  - GEOIP,private,国内直连,no-resolve
+
+  # 3. 需要保留 Provider 的自定义规则 (漫画柜等)
+  - RULE-SET,manhuagui,漫画柜
+  - RULE-SET,x18comic,禁漫天堂
+  - RULE-SET,dmm,DMM
+  - RULE-SET,javdb,JavDB
+  - RULE-SET,pikpak,PickPak
+  - RULE-SET,opencode,OpenCode
+  - RULE-SET,proxylite,默认代理
+  - RULE-SET,domestic,国内直连   
+
+  # 4. 特定服务分流 (确保你的 YouTube、Google 等组有节点)
+  - GEOSITE,category-ai-!cn,AI 
+  - GEOSITE,youtube,YouTube
+  - GEOSITE,google,Google
+  - GEOSITE,github,GitHub
+  - GEOSITE,netflix,NETFLIX
+  - GEOSITE,telegram,Telegram
+  - GEOSITE,tiktok,TikTok
+  - GEOSITE,microsoft,Microsoft
+  - GEOSITE,apple,Apple
+  - GEOSITE,paypal,PayPal         
+
+  # 5. 国内识别 (只要是国内的，统统直连)
+  - GEOSITE,cn,国内直连                  
+  - GEOIP,cn,国内直连,no-resolve         
+
+  # 6. 最终兜底 (只要没匹配到上面的，统统走代理)
+  - MATCH,默认代理
+
+# 规则集定义 
+rule-anchor:
+  ip: &ip {type: http, interval: 86400, behavior: ipcidr, format: mrs}
+  domain: &domain {type: http, interval: 86400, behavior: domain, format: mrs}
+  class: &class {type: http, interval: 86400, behavior: classical, format: text}
+
+rule-providers: 
+  # --- 自定义规则 ---
+  proxylite: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/proxy.list"}
+  domestic: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/domestic.list"}
+  manhuagui: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/manhuagui.list"}
+  x18comic: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/18comic.list"}
+  dmm: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/dmm.list"}
+  javdb: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/javdb.list"}
+  pikpak: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/pikpak.list"}
+  opencode: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/opencode.list"}
+  
+  # --- 系统功能辅助 (必须保留) ---
+  fakeipfilter_domain: {<<: *domain, url: "https://raw.githubusercontent.com/wwqgtxx/clash-rules/release/fakeip-filter.mrs"}
