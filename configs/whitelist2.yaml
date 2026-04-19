@@ -1,7 +1,7 @@
 # 机场订阅
 proxy-providers:
   ssrdog:
-    url: "xxx"  # 替换为你的订阅链接
+    url: "xxx" # 替换为你的机场订阅链接
     type: http
     interval: 864000
     health-check:
@@ -91,25 +91,24 @@ dns:
 
 proxy-groups:
   - {name: 自动选择, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "^((?!(直连)).)*$"}
-  - {name: 默认代理, type: select, proxies: [include-all: true,自动选择]}
-  - {name: 国内补充, type: select, proxies: [include-all: true,自动选择]}
-  - {name: 漫画柜, type: select, proxies: [include-all: true,自动选择]}
-  - {name: javdb, type: select, proxies: [include-all: true,自动选择]}
-  - {name: 禁漫天堂, type: select, proxies: [include-all: true,自动选择]}
-  - {name: dmm, type: select, proxies: [include-all: true,自动选择]}
-  - {name: pikpak, type: select, proxies: [include-all: true,自动选择]}
-  - {name: opencode, type: select, proxies: [include-all: true,自动选择]}  
-  - {name: YouTube, type: select, proxies: [include-all: true,自动选择]}
-  - {name: Google, type: select, proxies: [include-all: true,自动选择]}
-  - {name: AI, type: select, proxies: [include-all: true,自动选择]}
-  - {name: GitHub, type: select, proxies: [include-all: true,自动选择]}
-  - {name: OneDrive, type: select, proxies: [include-all: true,自动选择]}
-  - {name: Microsoft, type: select, proxies: [include-all: true,自动选择]}
-  - {name: TikTok, type: select, proxies: [include-all: true,自动选择]}
-  - {name: Telegram, type: select, proxies: [include-all: true,自动选择]}
-  - {name: NETFLIX, type: select, proxies: [include-all: true,自动选择]}
-  - {name: PayPal, type: select, proxies: [include-all: true,自动选择]}
-  - {name: 漏网之鱼, type: select, proxies: [include-all: true,自动选择]}
+  - {name: 默认代理, type: select, include-all: true}
+  - {name: 国内直连, type: select, include-all: true}
+  - {name: 漫画柜, type: select, proxies: [默认代理], include-all: true}
+  - {name: javdb, type: select, proxies: [默认代理],  include-all: true}
+  - {name: 禁漫天堂, type: select, proxies: [默认代理],  include-all: true}
+  - {name: dmm, type: select, proxies: [默认代理],  include-all: true}
+  - {name: pikpak, type: select, proxies: [默认代理],  include-all: true}
+  - {name: opencode, type: select, proxies: [默认代理],  include-all: true}  
+  - {name: YouTube, type: select, proxies: [默认代理],  include-all: true}
+  - {name: Google, type: select, proxies: [默认代理],  include-all: true}
+  - {name: AI, type: select, proxies: [默认代理],  include-all: true}
+  - {name: GitHub, type: select, proxies: [默认代理],  include-all: true}
+  - {name: OneDrive, type: select, proxies: [默认代理],  include-all: true}
+  - {name: Microsoft, type: select, proxies: [默认代理],  include-all: true}
+  - {name: TikTok, type: select, proxies: [默认代理],  include-all: true}
+  - {name: Telegram, type: select, proxies: [默认代理],  include-all: true}
+  - {name: NETFLIX, type: select, proxies: [默认代理],  include-all: true}
+  - {name: PayPal, type: select, proxies: [默认代理],  include-all: true}
 
 
 # 规则匹配
@@ -124,7 +123,7 @@ rules:
   - RULE-SET,private_domain,直连
   - RULE-SET,cn_domain,直连          # 国内域名优先直连
   - RULE-SET,cn_ip,直连              # 国内IP优先直连
-  - RULE-SET,domestic,国内补充        
+  - RULE-SET,domestic,国内直连        
   
   # 以下是你的特定服务规则（保持原样，优先匹配更好体验）
   - RULE-SET,proxylite,默认代理
@@ -153,10 +152,9 @@ rules:
   - RULE-SET,telegram_ip,Telegram
   
   # 非国内全部走代理（白名单核心）
-  - RULE-SET,geolocation-!cn,默认代理
-  
+  - RULE-SET,geolocation-!cn,国内直连
   # 最终兜底（漏网之鱼）
-  - MATCH,漏网之鱼
+  - MATCH,默认代理
 
 # 规则集
 ## type：可选http/file/inline  behavior：可选domain/ipcidr/classical format：可选yaml/text/mrs
