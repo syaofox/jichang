@@ -1,0 +1,176 @@
+# 1. 代理集合配置
+proxy-providers:
+  ssrdog:
+    url: "你的订阅链接" # 请在此处填入链接
+    type: http
+    interval: 86400
+    health-check: {enable: true, url: "https://www.gstatic.com/generate_204", interval: 300}
+    override:
+      additional-prefix: "[ssrdog]"
+      client-fingerprint: chrome 
+
+proxies: 
+  - name: "直连"
+    type: direct
+    udp: true
+
+mixed-port: 7890
+ipv6: true
+allow-lan: true
+unified-delay: false
+tcp-concurrent: true
+external-controller: 0.0.0.0:9090
+external-ui: ui
+external-ui-url: "https://gh-proxy.org/https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip"
+
+geodata-mode: true
+geox-url:
+  geoip: "https://gh-proxy.org/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat"
+  geosite: "https://gh-proxy.org/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
+  mmdb: "https://gh-proxy.org/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb"
+  asn: "https://gh-proxy.org/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb"
+
+find-process-mode: strict
+
+
+profile:
+  store-selected: true
+  store-fake-ip: true
+
+sniffer:
+  enable: true
+  sniff:
+    HTTP:
+      ports: [80, 8080-8880]
+      override-destination: true
+    TLS:
+      ports: [443, 8443]
+    QUIC:
+      ports: [443, 8443]
+  skip-domain:
+    - "Mijia Cloud"
+    - "+.push.apple.com"
+    - "rule-set:fakeipfilter_domain"
+
+tun:
+  enable: true
+  stack: mixed
+  dns-hijack:
+    - "any:53"
+    - "tcp://any:53"
+  auto-route: true
+  auto-redirect: true
+  auto-detect-interface: true
+
+dns:
+  enable: true
+  ipv6: false
+  respect-rules: true
+  enhanced-mode: fake-ip
+  fake-ip-filter:
+    - "*"
+    - "+.lan"
+    - "+.local"
+    - "+.market.xiaomi.com"
+    - "+.miui.com"
+    - "+.xiaomi.com"
+    - "rule-set:fakeipfilter_domain" # 保持你引用的远程 filter
+
+  # 1. 基础解析器：仅用于解析 DoH 域名和拨号，必须是纯 IP
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+    - 1.1.1.1
+    - 8.8.8.8
+
+  # 2. 代理服务器解析器：专门解析你的机场/订阅服务器域名
+  proxy-server-nameserver:
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
+
+  # 3. 默认解析器：并行请求，谁快用谁
+  nameserver:
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
+
+  # 4. 关键：分流策略 (Nameserver Policy)
+  # 优先级最高，根据域名类型指定解析服务器
+  nameserver-policy:
+    # 国内域名：走国内加密 DNS，确保 CDN 调度最快
+    "geosite:cn": [https://dns.alidns.com/dns-query, https://doh.pub/dns-query]
+    
+    # 国外域名：走海外加密 DNS，彻底解决污染，并利用 Fake-IP 秒开
+    "geosite:geolocation-!cn": [https://dns.cloudflare.com/dns-query, https://dns.google/dns-query]
+    
+    # 针对特定的 Apple 或 Telegram 域名（可选，提升稳定性）
+    "geosite:apple": [https://doh.pub/dns-query, https://dns.alidns.com/dns-query]
+    "geosite:telegram": [https://dns.cloudflare.com/dns-query, https://dns.google/dns-query]
+
+
+proxy-groups:
+  - {name: 默认代理, type: select, proxies: [直连, REJECT], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: 国内直连, type: select, proxies: [直连, REJECT], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: 漫画柜, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: JavDB, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: 禁漫天堂, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: DMM, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: PickPak, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: OpenCode, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: YouTube, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: Google, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: AI, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: GitHub, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: OneDrive, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: Microsoft, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: Apple, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: TikTok, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: Telegram, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: NETFLIX, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: PayPal, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+
+rules:
+  # 1. 拦截 UDP 123 (NTP 服务器，通常不需要走代理)
+  - AND,((NETWORK,UDP),(DST-PORT,123)),国内直连
+  # 1. 拦截 UDP 443 (可选，防止部分应用走 QUIC 绕过分流)
+  - AND,((NETWORK,UDP),(DST-PORT,443)),REJECT
+  - GEOSITE,private,国内直连
+  - GEOIP,private,国内直连,no-resolve
+  - RULE-SET,youtubeapp,YouTube
+  - RULE-SET,manhuagui,漫画柜
+  - RULE-SET,x18comic,禁漫天堂
+  - RULE-SET,dmm,DMM
+  - RULE-SET,javdb,JavDB
+  - RULE-SET,pikpak,PickPak
+  - RULE-SET,opencode,OpenCode
+  - RULE-SET,proxylite,默认代理
+  - RULE-SET,domestic,国内直连   
+  - GEOSITE,category-ai-!cn,AI 
+  - GEOSITE,youtube,YouTube
+  - GEOSITE,google,Google
+  - GEOSITE,github,GitHub
+  - GEOSITE,netflix,NETFLIX
+  - GEOSITE,telegram,Telegram
+  - GEOSITE,tiktok,TikTok
+  - GEOSITE,microsoft,Microsoft
+  - GEOSITE,apple,Apple
+  - GEOSITE,paypal,PayPal         
+  - GEOSITE,cn,国内直连                  
+  - GEOIP,cn,国内直连,no-resolve         
+  - MATCH,默认代理
+
+rule-anchor:
+  ip: &ip {type: http, interval: 86400, behavior: ipcidr, format: mrs}
+  domain: &domain {type: http, interval: 86400, behavior: domain, format: mrs}
+  class: &class {type: http, interval: 86400, behavior: classical, format: text}
+
+rule-providers: 
+  proxylite: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/proxy.list"}
+  domestic: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/domestic.list"}
+  manhuagui: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/manhuagui.list"}
+  x18comic: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/18comic.list"}
+  dmm: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/dmm.list"}
+  javdb: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/javdb.list"}
+  pikpak: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/pikpak.list"}
+  opencode: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/opencode.list"}
+  youtubeapp: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/youtubeapp.list"}
+  fakeipfilter_domain: {<<: *domain, url: "https://raw.githubusercontent.com/wwqgtxx/clash-rules/release/fakeip-filter.mrs"}
