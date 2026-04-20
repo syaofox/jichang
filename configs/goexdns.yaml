@@ -15,7 +15,7 @@ proxies:
     udp: true
 
 mixed-port: 7890
-ipv6: true
+ipv6: false
 allow-lan: true
 unified-delay: false
 tcp-concurrent: true
@@ -108,7 +108,7 @@ dns:
 
 
 proxy-groups:
-  - {name: 默认代理, type: select, proxies: [直连, REJECT], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: 默认代理, type: select, include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
   - {name: 国内直连, type: select, proxies: [直连, REJECT], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
   - {name: 漫画柜, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
   - {name: JavDB, type: select, proxies: [默认代理,直连], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
