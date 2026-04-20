@@ -68,42 +68,59 @@ dns:
   respect-rules: true
   enhanced-mode: fake-ip
   fake-ip-filter:
-    - "*"
+    - "*"              # 配合 fake-ip 模式的经典设置
     - "+.lan"
     - "+.local"
     - "+.market.xiaomi.com"
     - "+.miui.com"
     - "+.xiaomi.com"
-    - "rule-set:fakeipfilter_domain" # 保持你引用的远程 filter
+    - "rule-set:fakeipfilter_domain"
+    # 增加基础连通性检查地址，避免被 fake-ip 劫持导致测速异常
+    - "connectivity-check.gstatic.com"
+    - "msftconnecttest.com"
+    - "msftncsi.com"
 
-  # 1. 基础解析器：仅用于解析 DoH 域名和拨号，必须是纯 IP
+  # 1. 基础解析器：仅用于解析 DOH 域名，必须使用纯 IP
   default-nameserver:
     - 223.5.5.5
     - 119.29.29.29
     - 1.1.1.1
     - 8.8.8.8
 
-  # 2. 代理服务器解析器：专门解析你的机场/订阅服务器域名
+  # 2. 代理服务器解析器：专门用于解析机场节点的域名
   proxy-server-nameserver:
     - https://dns.alidns.com/dns-query
     - https://doh.pub/dns-query
 
-  # 3. 默认解析器：并行请求，谁快用谁
+  # 3. 默认解析器：并行请求，主要处理未被 policy 命中的域名
   nameserver:
     - https://dns.alidns.com/dns-query
     - https://doh.pub/dns-query
 
-  # 4. 关键：分流策略 (Nameserver Policy)
-  # 优先级最高，根据域名类型指定解析服务器
+  # 4. 兜底解析器：当 nameserver 解析出的 IP 为国外时，强制使用这些加密 DNS 重新解析
+  fallback:
+    - https://dns.cloudflare.com/dns-query
+    - https://dns.google/dns-query
+  
+  # 5. 兜底过滤：只有非中国大陆 IP 才会触发 fallback 逻辑
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+    ipcidr:
+      - 240.0.0.0/4
+
+  # 6. 分流策略 (Nameserver Policy)
+  # 优先级最高，根据域名类型强制指定解析服务器
   nameserver-policy:
-    # 国内域名：走国内加密 DNS，确保 CDN 调度最快
+    # 国内域名：走国内 DOH，确保 CDN 调度最快且精准
     "geosite:cn": [https://dns.alidns.com/dns-query, https://doh.pub/dns-query]
     
-    # 国外域名：走海外加密 DNS，彻底解决污染，并利用 Fake-IP 秒开
+    # 国外域名：走海外加密 DOH，配合 Fake-IP 实现秒开并防污染
     "geosite:geolocation-!cn": [https://dns.cloudflare.com/dns-query, https://dns.google/dns-query]
     
-    # 针对特定的 Apple 或 Telegram 域名（可选，提升稳定性）
+    # 针对特定服务的优化
     "geosite:apple": [https://doh.pub/dns-query, https://dns.alidns.com/dns-query]
+    "geosite:microsoft": [https://doh.pub/dns-query, https://dns.alidns.com/dns-query]
     "geosite:telegram": [https://dns.cloudflare.com/dns-query, https://dns.google/dns-query]
 
 
