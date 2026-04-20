@@ -49,6 +49,7 @@ sniffer:
   skip-domain:
     - "Mijia Cloud"
     - "+.push.apple.com"
+    - "rule-set:fakeipfilter_domain"
 
 tun:
   enable: true
