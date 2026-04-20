@@ -123,27 +123,35 @@ dns:
     "geosite:microsoft": [https://doh.pub/dns-query, https://dns.alidns.com/dns-query]
     "geosite:telegram": [https://dns.cloudflare.com/dns-query, https://dns.google/dns-query]
 
+# 1. 定义正则模板：排除了 GB、流量、到期信息，以及防止重复的“直连/DIRECT”
+.filter_template: &filter_rule "^((?!(GB|Traffic|Expire|直连|DIRECT)).)*$"
 
 proxy-groups:
-  - {name: 默认代理, type: select, include-all: true, filter: "^((?!(GB|Traffic|Expire|直连)).)*$"}
-  - {name: 国内直连, type: select, include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
-  - {name: 漫画柜, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
-  - {name: JavDB, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
-  - {name: 禁漫天堂, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
-  - {name: DMM, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
-  - {name: PickPak, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
-  - {name: OpenCode, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
-  - {name: YouTube, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
-  - {name: Google, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
-  - {name: AI, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
-  - {name: GitHub, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
-  - {name: OneDrive, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
-  - {name: Microsoft, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
-  - {name: Apple, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
-  - {name: TikTok, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
-  - {name: Telegram, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
-  - {name: NETFLIX, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
-  - {name: PayPal, type: select, proxies: [默认代理], include-all: true, filter: "^((?!(GB|Traffic|Expire)).)*$"}
+  - {name: 默认代理, type: select, include-all: true, filter: *filter_rule}
+  - {name: 国内直连, type: select, proxies: [直连, 默认代理], include-all: true, filter: *filter_rule}
+  
+  # 2. 业务分组：手动加入“默认代理”和“直连”，其余节点由 include-all 自动导入
+  - {name: 漫画柜, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
+  - {name: JavDB, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
+  - {name: 禁漫天堂, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
+  - {name: DMM, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
+  - {name: PickPak, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
+  - {name: OpenCode, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
+  - {name: YouTube, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
+  - {name: Google, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
+  - {name: AI, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
+  - {name: GitHub, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
+  
+  # 3. 默认偏向直连的分组（将直连排在首位）
+  - {name: OneDrive, type: select, proxies: [直连, 默认代理], include-all: true, filter: *filter_rule}
+  - {name: Microsoft, type: select, proxies: [直连, 默认代理], include-all: true, filter: *filter_rule}
+  - {name: Apple, type: select, proxies: [直连, 默认代理], include-all: true, filter: *filter_rule}
+  
+  - {name: TikTok, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
+  - {name: Telegram, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
+  - {name: NETFLIX, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
+  - {name: PayPal, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
+
 
 rules:
   # 1. 拦截 UDP 123 (NTP 服务器，通常不需要走代理)
