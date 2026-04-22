@@ -68,7 +68,7 @@ dns:
   respect-rules: true
   enhanced-mode: fake-ip
   fake-ip-filter:
-    - "*"              # 配合 fake-ip 模式的经典设置
+    # - "*"              # 配合 fake-ip 模式的经典设置
     - "+.lan"
     - "+.local"
     - "+.market.xiaomi.com"
