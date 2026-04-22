@@ -2,7 +2,7 @@
 exec >/tmp/setup.log 2>&1
 
 root_password="0928"
-lan_ip_address="10.10.10.10/24"
+lan_ip_address="10.10.10.20/24"
 
 # --- 1. 设置密码 ---
 if [ -n "$root_password" ]; then
