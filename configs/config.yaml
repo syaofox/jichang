@@ -1,13 +1,13 @@
-# 1. 代理集合配置
+# url 里填写自己的订阅,名称不能重复
 proxy-providers:
-  ssrdog:
-    url: "你的订阅链接" # 请在此处填入链接
+  ssrdog_local:
+    url: "http://10.10.10.6:9000/download/ssrdog"
     type: http
     interval: 86400
-    health-check: {enable: true, url: "https://www.gstatic.com/generate_204", interval: 300}
+    health-check: {enable: true,url: "https://www.gstatic.com/generate_204", interval: 300}
     override:
-      additional-prefix: "[ssrdog]"
-      client-fingerprint: chrome 
+      additional-prefix: "[ssrdog_local]"
+
 
 proxies: 
   - name: "直连"
@@ -20,8 +20,9 @@ allow-lan: true
 unified-delay: false
 tcp-concurrent: true
 external-controller: 0.0.0.0:9090
-external-ui: ui
-external-ui-url: "https://gh-proxy.org/https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip"
+external-ui: ui             # 确保工作目录下有一个名为 ui 的文件夹
+external-ui-name: metacubexd # 明确指定 UI 的名称
+external-ui-url: "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip"
 
 geodata-mode: true
 geox-url:
@@ -51,10 +52,14 @@ sniffer:
     - "Mijia Cloud"
     - "+.push.apple.com"
     - "rule-set:fakeipfilter_domain"
-
+  skip-src-address:
+    - 169.254.169.254/32 # AWS EC2 元数据服务地址，避免被劫持导致安全问题
+    
 tun:
   enable: true
-  stack: mixed
+  # 建议将 mixed 改为 system 或 gvisor
+  # system 稳定性更高，兼容性更好；gvisor 性能较好但对某些系统环境较敏感
+  stack: system
   dns-hijack:
     - "any:53"
     - "tcp://any:53"
@@ -68,9 +73,10 @@ dns:
   respect-rules: true
   enhanced-mode: fake-ip
   fake-ip-filter:
-    # - "*"              # 配合 fake-ip 模式的经典设置
+  #  - "*"              # 配合 fake-ip 模式的经典设置
     - "+.lan"
     - "+.local"
+    - "169.254.169.254" # 避免被 AWS EC2 的元数据服务劫持
     - "+.market.xiaomi.com"
     - "+.miui.com"
     - "+.xiaomi.com"
@@ -82,10 +88,11 @@ dns:
 
   # 1. 基础解析器：仅用于解析 DOH 域名，必须使用纯 IP
   default-nameserver:
+    - 211.138.151.161
+    - 218.30.118.6
     - 223.5.5.5
-    - 119.29.29.29
-    - 1.1.1.1
-    - 8.8.8.8
+    # - 1.1.1.1
+    # - 8.8.8.8
 
   # 2. 代理服务器解析器：专门用于解析机场节点的域名
   proxy-server-nameserver:
@@ -94,8 +101,11 @@ dns:
 
   # 3. 默认解析器：并行请求，主要处理未被 policy 命中的域名
   nameserver:
-    - https://dns.alidns.com/dns-query
-    - https://doh.pub/dns-query
+    - 211.138.151.161
+    - 218.30.118.6
+    - 223.5.5.5
+    # - https://dns.alidns.com/dns-query
+    # - https://doh.pub/dns-query
 
   # 4. 兜底解析器：当 nameserver 解析出的 IP 为国外时，强制使用这些加密 DNS 重新解析
   fallback:
@@ -127,7 +137,7 @@ dns:
 .filter_template: &filter_rule "^((?!(GB|Traffic|Expire|直连|DIRECT)).)*$"
 
 proxy-groups:
-  - {name: 默认代理, type: select, include-all: true, filter: *filter_rule}
+  - {name: 默认代理, type: select, proxies: [直连], include-all: true, filter: *filter_rule}
   - {name: 国内直连, type: select, proxies: [直连, 默认代理], include-all: true, filter: *filter_rule}
   
   # 2. 业务分组：手动加入“默认代理”和“直连”，其余节点由 include-all 自动导入
@@ -154,9 +164,11 @@ proxy-groups:
 
 
 rules:
+  # 0. 先排除 AWS EC2 元数据服务，避免被劫持导致安全问题
+  - IP-CIDR,169.254.169.254/32,REJECT,no-resolve
   # 1. 拦截 UDP 123 (NTP 服务器，通常不需要走代理)
   - AND,((NETWORK,UDP),(DST-PORT,123)),国内直连
-  # 1. 拦截 UDP 443 (可选，防止部分应用走 QUIC 绕过分流)
+  # 2. 拦截 UDP 443 (可选，防止部分应用走 QUIC 绕过分流)
   - AND,((NETWORK,UDP),(DST-PORT,443)),REJECT
   - GEOSITE,private,国内直连
   - GEOIP,private,国内直连,no-resolve
