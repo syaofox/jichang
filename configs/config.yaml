@@ -4,7 +4,7 @@ proxy-providers:
     url: "http://10.10.10.6:9000/download/ssrdog"
     type: http
     interval: 86400
-    health-check: {enable: true,url: "https://www.gstatic.com/generate_204", interval: 300}
+    health-check: {enable: true, url: "https://www.gstatic.com/generate_204", interval: 300}
     override:
       additional-prefix: "[ssrdog_local]"  
 
@@ -19,8 +19,8 @@ allow-lan: true
 unified-delay: false
 tcp-concurrent: true
 external-controller: 0.0.0.0:9090
-external-ui: ui             # 确保工作目录下有一个名为 ui 的文件夹
-external-ui-name: metacubexd # 明确指定 UI 的名称
+external-ui: ui             
+external-ui-name: metacubexd 
 external-ui-url: "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip"
 
 geodata-mode: true
@@ -31,7 +31,6 @@ geox-url:
   asn: "https://gh-proxy.org/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb"
 
 find-process-mode: strict
-
 
 profile:
   store-selected: true
@@ -52,13 +51,12 @@ sniffer:
     - "+.push.apple.com"
     - "rule-set:fakeipfilter_domain"
   skip-src-address:
-    - 169.254.169.254/32 # AWS EC2 元数据服务地址，避免被劫持导致安全问题
+    - 169.254.169.254/32 
     
 tun:
   enable: true
-  # 建议将 mixed 改为 system 或 gvisor
-  # system 稳定性更高，兼容性更好；gvisor 性能较好但对某些系统环境较敏感
-  stack: system
+  stack: gvisor
+  device: mihomo0
   dns-hijack:
     - "any:53"
     - "tcp://any:53"
@@ -72,74 +70,63 @@ dns:
   respect-rules: true
   enhanced-mode: fake-ip
   fake-ip-filter:
-  #  - "*"              # 配合 fake-ip 模式的经典设置
     - "+.lan"
     - "+.local"
-    - "169.254.169.254" # 避免被 AWS EC2 的元数据服务劫持
+    - "169.254.169.254" 
     - "+.market.xiaomi.com"
     - "+.miui.com"
     - "+.xiaomi.com"
     - "rule-set:fakeipfilter_domain"
-    # 增加基础连通性检查地址，避免被 fake-ip 劫持导致测速异常
     - "connectivity-check.gstatic.com"
     - "msftconnecttest.com"
     - "msftncsi.com"
 
-  # 1. 基础解析器：仅用于解析 DOH 域名，必须使用纯 IP
+  # 1. 基础解析器：必须是纯 IP
   default-nameserver:
-    - 211.138.151.161
-    - 218.30.118.6
     - 223.5.5.5
-    # - 1.1.1.1
-    # - 8.8.8.8
+    - 119.29.29.29
 
-  # 2. 代理服务器解析器：专门用于解析机场节点的域名
+  # 2. 代理服务器解析器：专门用于解析机场节点的域名（改用高可用国内 DOH，绝不走代理）
   proxy-server-nameserver:
-    - https://dns.alidns.com/dns-query
-    - https://doh.pub/dns-query
-
-  # 3. 默认解析器：并行请求，主要处理未被 policy 命中的域名
-  nameserver:
-    - 211.138.151.161
-    - 218.30.118.6
     - 223.5.5.5
-    # - https://dns.alidns.com/dns-query
-    # - https://doh.pub/dns-query
+    - 119.29.29.29
 
-  # 4. 兜底解析器：当 nameserver 解析出的 IP 为国外时，强制使用这些加密 DNS 重新解析
+  # 3. 默认解析器：主要处理未被 policy 命中的域名，全部用国内无污染/大厂IP，防止死锁
+  nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+    # - https://dns.alidns.com/dns-query
+
+  # 4. 兜底解析器：当 nameserver 解析出的 IP 为国外时触发
   fallback:
     - https://dns.cloudflare.com/dns-query
     - https://dns.google/dns-query
   
-  # 5. 兜底过滤：只有非中国大陆 IP 才会触发 fallback 逻辑
+  # 5. 兜底过滤
   fallback-filter:
     geoip: true
     geoip-code: CN
     ipcidr:
       - 240.0.0.0/4
 
-  # 6. 分流策略 (Nameserver Policy)
-  # 优先级最高，根据域名类型强制指定解析服务器
+  # 6. 分流策略
   nameserver-policy:
-    # 国内域名：走国内 DOH，确保 CDN 调度最快且精准
     "geosite:cn": [https://dns.alidns.com/dns-query, https://doh.pub/dns-query]
-    
-    # 国外域名：走海外加密 DOH，配合 Fake-IP 实现秒开并防污染
-    "geosite:geolocation-!cn": [https://dns.cloudflare.com/dns-query, https://dns.google/dns-query]
-    
-    # 针对特定服务的优化
+    # 将下面这些国外的 DOH 纯域名，改为带有纯 IP 的 DOH，防止极端的首次解析延迟
+    "geosite:geolocation-!cn": [https://1.1.1.1/dns-query, https://8.8.8.8/dns-query]
     "geosite:apple": [https://doh.pub/dns-query, https://dns.alidns.com/dns-query]
     "geosite:microsoft": [https://doh.pub/dns-query, https://dns.alidns.com/dns-query]
-    "geosite:telegram": [https://dns.cloudflare.com/dns-query, https://dns.google/dns-query]
+    "geosite:telegram": [https://1.1.1.1/dns-query, https://8.8.8.8/dns-query]
 
-# 1. 定义正则模板：排除了 GB、流量、到期信息，以及防止重复的“直连/DIRECT”
+# 定义正则模板
 .filter_template: &filter_rule "^((?!(GB|Traffic|Expire|直连|DIRECT)).)*$"
 
 proxy-groups:
-  - {name: 默认代理, type: select, proxies: [直连], include-all: true, filter: *filter_rule}
-  - {name: 国内直连, type: select, proxies: [直连, 默认代理], include-all: true, filter: *filter_rule}
+  # 【重要修改】默认代理移除了“直连”，如果机场挂了它会报错拒绝，而不是盲目走直连导致超时卡死
+  - {name: 默认代理, type: select, include-all: true, filter: *filter_rule}
+  - {name: 国内直连, type: select, proxies: [直连, 默认代理]}
   
-  # 2. 业务分组：手动加入“默认代理”和“直连”，其余节点由 include-all 自动导入
+  # 业务分组
   - {name: 漫画柜, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
   - {name: JavDB, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
   - {name: 禁漫天堂, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
@@ -151,7 +138,6 @@ proxy-groups:
   - {name: AI, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
   - {name: GitHub, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
   
-  # 3. 默认偏向直连的分组（将直连排在首位）
   - {name: OneDrive, type: select, proxies: [直连, 默认代理], include-all: true, filter: *filter_rule}
   - {name: Microsoft, type: select, proxies: [直连, 默认代理], include-all: true, filter: *filter_rule}
   - {name: Apple, type: select, proxies: [直连, 默认代理], include-all: true, filter: *filter_rule}
@@ -161,16 +147,15 @@ proxy-groups:
   - {name: NETFLIX, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
   - {name: PayPal, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
 
-
 rules:
-  # 0. 先排除 AWS EC2 元数据服务，避免被劫持导致安全问题
-  - IP-CIDR,169.254.169.254/32,REJECT,no-resolve
-  # 1. 拦截 UDP 123 (NTP 服务器，通常不需要走代理)
-  - AND,((NETWORK,UDP),(DST-PORT,123)),国内直连
-  # 2. 拦截 UDP 443 (可选，防止部分应用走 QUIC 绕过分流)
+  # 拦截普通流量的 UDP 443 (QUIC)
   - AND,((NETWORK,UDP),(DST-PORT,443)),REJECT
+  - AND,((NETWORK,UDP),(DST-PORT,123)),国内直连
+  - IP-CIDR,169.254.169.254/32,REJECT,no-resolve
   - GEOSITE,private,国内直连
   - GEOIP,private,国内直连,no-resolve
+  
+  # 针对具体域名的分流
   - RULE-SET,youtubeapp,YouTube
   - RULE-SET,manhuagui,漫画柜
   - RULE-SET,x18comic,禁漫天堂
@@ -180,6 +165,7 @@ rules:
   - RULE-SET,opencode,OpenCode
   - RULE-SET,proxylite,默认代理
   - RULE-SET,domestic,国内直连   
+  
   - GEOSITE,category-ai-!cn,AI 
   - GEOSITE,youtube,YouTube
   - GEOSITE,google,Google
@@ -190,6 +176,7 @@ rules:
   - GEOSITE,microsoft,Microsoft
   - GEOSITE,apple,Apple
   - GEOSITE,paypal,PayPal         
+
   - GEOSITE,cn,国内直连                  
   - GEOIP,cn,国内直连,no-resolve         
   - MATCH,默认代理
