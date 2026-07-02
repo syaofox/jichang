@@ -163,7 +163,7 @@ proxy-groups:
   - {name: PayPal, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
 
 rules:
-  # 拦截普通流量的 UDP 443 (QUIC)
+  # 拦截 UDP 443 (QUIC)——机场不支持 UDP，立即 REJECT 让 App 回退 TCP
   - AND,((NETWORK,UDP),(DST-PORT,443)),REJECT
   - AND,((NETWORK,UDP),(DST-PORT,123)),国内直连
   - IP-CIDR,169.254.169.254/32,REJECT,no-resolve
@@ -172,6 +172,12 @@ rules:
   
   # 针对具体域名的分流
   - RULE-SET,youtubeapp,YouTube
+  - RULE-SET,tiktok,TikTok
+  - RULE-SET,netflix,NETFLIX
+  - RULE-SET,telegram,Telegram
+  - RULE-SET,twitter,默认代理
+  - RULE-SET,instagram,默认代理
+  - RULE-SET,openai,AI
   - RULE-SET,manhuagui,漫画柜
   - RULE-SET,x18comic,禁漫天堂
   - RULE-SET,dmm,DMM
@@ -193,7 +199,7 @@ rules:
   - GEOSITE,paypal,PayPal         
 
   - GEOSITE,cn,国内直连                  
-  - GEOIP,cn,国内直连,no-resolve         
+  - GEOIP,cn,国内直连,no-resolve
   - MATCH,默认代理
 
 rule-anchor:
@@ -211,4 +217,10 @@ rule-providers:
   pikpak: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/pikpak.list"}
   opencode: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/opencode.list"}
   youtubeapp: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/youtubeapp.list"}
+  tiktok: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/tiktok.list"}
+  netflix: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/netflix.list"}
+  telegram: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/telegram.list"}
+  twitter: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/twitter.list"}
+  instagram: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/instagram.list"}
+  openai: { <<: *class, url: "https://raw.githubusercontent.com/syaofox/jichang/main/rule-providers/openai.list"}
   fakeipfilter_domain: {<<: *domain, url: "https://raw.githubusercontent.com/wwqgtxx/clash-rules/release/fakeip-filter.mrs"}
