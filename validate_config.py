@@ -111,13 +111,24 @@ def validate_rule_provider_files(rule_providers_dir, errors, warnings):
     rp_file_count = 0
     rp_line_count = 0
     for rp_file in sorted(rule_providers_dir.glob("*.list")):
-        rp_file_count += 1
         try:
             with open(rp_file, "r", encoding="utf-8") as f:
                 lines = f.readlines()
         except Exception as e:
             errors.append(f"{rp_file}: 无法读取文件: {e}")
             continue
+
+        # 纯域名列表（如 fakeipfilter-*.list，供 DNS fake-ip-filter 使用）
+        # 没有 "规则类型,值" 的语法，跳过规则类型校验
+        payload = [
+            line.strip()
+            for line in lines
+            if line.strip() and not line.strip().startswith("#")
+        ]
+        if payload and not any("," in line for line in payload):
+            continue
+
+        rp_file_count += 1
 
         for i, line in enumerate(lines, 1):
             stripped = line.strip()
@@ -248,7 +259,7 @@ def main():
         group_proxies = group.get("proxies", [])
         line = group_index.get(name, "?")
 
-        if not group_proxies:
+        if not group_proxies and not group.get("include-all"):
             warnings.append(f"{config_path}:{line} 分组「{name}」没有配置代理节点")
         elif not args.no_check_proxies:
             for proxy in group_proxies:
@@ -291,15 +302,18 @@ def main():
                 if parts_count < 3:
                     warnings.append(f"{config_path}:{line} 格式异常: {rule}")
                 else:
-                    rule_proxy = parts[2]
-                    if parts_count > 3:
-                        warnings.append(
-                            f"{config_path}:{line} 多余部分将被忽略: {rule}"
-                        )
-                    if rule_type != "NOT" and not re.match(r"^\(.*\)$", parts[1]):
+                    condition = ",".join(parts[1:-1])
+                    rule_proxy = parts[-1]
+                    if not (condition.startswith("(") and condition.endswith(")")):
                         warnings.append(
                             f"{config_path}:{line} {rule_type} 规则条件应使用括号: {rule}"
                         )
+                    for match in re.finditer(r"RULE-SET,([^,()]+)", condition):
+                        provider = match.group(1).strip()
+                        if provider not in provider_names:
+                            errors.append(
+                                f"{config_path}:{line} 引用的规则集「{provider}」未定义"
+                            )
             elif rule_type in NO_RESOLVE_RULE_TYPES:
                 if parts_count < 3:
                     warnings.append(f"{config_path}:{line} 格式异常: {rule}")

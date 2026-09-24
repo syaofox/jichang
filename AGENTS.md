@@ -124,3 +124,5 @@ uvx mypy validate_config.py
 - Logic rules (`AND`, `OR`, `NOT`, `SUB-RULE`) require parentheses in condition field
 - `RULE-SET` type requires the provider to be defined in `rule-providers` section
 - No-resolve flag (`no-resolve`) is supported for GEOIP, IP-CIDR, etc.
+- Pure domain lists (no commas, e.g. `fakeipfilter-*.list` for DNS fake-ip-filter) are skipped by rule-type validation
+- Groups with `include-all: true` are not warned for having no static `proxies`
