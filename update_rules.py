@@ -1,26 +1,22 @@
 #!/usr/bin/env python3
-"""从 blackmatrix7/ios_rule_script 同步更新 rule-providers 下的规则文件."""
+"""从上游同步更新 rule-providers 下的列表文件."""
 
 import sys
 import urllib.request
-import re
 from pathlib import Path
 
-# 上游映射: 本地文件名 -> 上游分类名
+# 上游映射: 本地文件名 -> 完整 URL
+# 目前为 fakeipfilter 纯域名列表（DNS fake-ip-filter 使用），下载后原样保存
 UPSTREAM = {
-    'youtubeapp': 'YouTube',
-    'tiktok': 'TikTok',
-    'netflix': 'Netflix',
-    'telegram': 'Telegram',
-    'twitter': 'Twitter',
-    'instagram': 'Instagram',
-    'openai': 'OpenAI',
+    'fakeipfilter-cn': (
+        'https://raw.githubusercontent.com/qichiyuhub/rule'
+        '/refs/heads/main/rules/fakeipfilter-cn.list'
+    ),
+    'fakeipfilter-!cn': (
+        'https://raw.githubusercontent.com/qichiyuhub/rule'
+        '/refs/heads/main/rules/fakeipfilter-!cn.list'
+    ),
 }
-
-BASE_URL = (
-    'https://raw.githubusercontent.com'
-    '/blackmatrix7/ios_rule_script/master/rule/Clash'
-)
 
 RULE_DIR = Path(__file__).parent / 'rule-providers'
 
@@ -36,27 +32,14 @@ def download(url):
         return None
 
 
-def should_keep(line):
-    """判断规则行是否应该保留（过滤路由器上无效的规则类型）. """
-    stripped = line.strip()
-    if not stripped or stripped.startswith('#'):
-        return True
-    return not re.match(
-        r'^(IP-CIDR|IP-CIDR6|PROCESS-NAME)\b', stripped, re.IGNORECASE
-    )
-
-
-def update_file(local_name, category):
-    """更新单个规则文件."""
-    url = f'{BASE_URL}/{category}/{category}.list'
-    print(f'  {local_name:12} <- {category}.list ... ', end='')
+def update_file(local_name, url, label):
+    """更新单个列表文件，返回是否成功."""
+    print(f'  {local_name:16} <- {label} ... ', end='')
 
     lines = download(url)
     if lines is None:
         print('跳过')
         return False
-
-    lines = [l for l in lines if should_keep(l)]
 
     dst = RULE_DIR / f'{local_name}.list'
     with open(dst, 'w', encoding='utf-8', newline='\n') as f:
@@ -64,7 +47,7 @@ def update_file(local_name, category):
             f.write(line.rstrip() + '\n')
 
     count = len([l for l in lines if l.strip() and not l.strip().startswith('#')])
-    print(f'{count} 条规则')
+    print(f'{count} 条')
     return True
 
 
@@ -75,17 +58,19 @@ def main():
         print(f'错误: 目录不存在: {RULE_DIR}', file=sys.stderr)
         sys.exit(1)
 
-    names = args if args else sorted(UPSTREAM.keys())
+    names = args if args else sorted(UPSTREAM)
 
     ok = 0
     fail = 0
     for name in names:
         if name not in UPSTREAM:
-            print(f'  未知规则: {name}（可选: {", ".join(sorted(UPSTREAM.keys()))}）')
+            print(f'  未知规则: {name}（可选: {", ".join(sorted(UPSTREAM))}）')
             fail += 1
             continue
-        category = UPSTREAM[name]
-        if update_file(name, category):
+
+        url = UPSTREAM[name]
+        label = '/'.join(url.split('/')[-2:])
+        if update_file(name, url, label):
             ok += 1
         else:
             fail += 1
