@@ -14,8 +14,7 @@
 #   - 新增 Steam / Wallet 分组，取消 GEOSITE + geodata 依赖
 #
 # 注意事项：
-#   - 默认拦截「境外域名 + UDP 443(QUIC)」，让不支持 UDP 的机场回退 TCP；
-#     如果你的机场支持 UDP，可以删掉最前面那条 AND 规则。
+#   - 机场实测支持 UDP，境外 QUIC 不拦截、直接走代理（手机端 App 体验更好）。
 #   - 已按原作者说明处理 Google Play 无法更新：googleapis.cn 与
 #     xn--ngstr-lra8j.com 走国外 DNS 并代理。
 # ==============================================================================
@@ -94,9 +93,6 @@ tun:
   auto-route: true
   auto-redirect: true
   auto-detect-interface: true
-  # 大陆 IP 不进 tun，由系统直接路由
-  route-exclude-address-set:
-    - cn_ip
 
 sniffer:
   enable: true
@@ -197,8 +193,6 @@ proxy-groups:
   - {name: Wallet, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
 
 rules:
-  # 境外域名拒绝 QUIC（UDP 443），避免机场不支持 UDP 时流量黑洞，让客户端回退 TCP
-  - AND,((RULE-SET,cn!_domain),(DST-PORT,443),(NETWORK,UDP)),REJECT
   - AND,((NETWORK,UDP),(DST-PORT,123)),国内直连
   - IP-CIDR,169.254.169.254/32,REJECT,no-resolve
   - RULE-SET,private_ip,国内直连,no-resolve
