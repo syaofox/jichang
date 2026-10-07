@@ -189,6 +189,7 @@ proxy-groups:
   - {name: Telegram, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
   - {name: NETFLIX, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
   - {name: Steam, type: select, proxies: [直连, 默认代理], include-all: true, filter: *filter_rule}
+  - {name: 暴雪, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
   - {name: PayPal, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
   - {name: Wallet, type: select, proxies: [默认代理, 直连], include-all: true, filter: *filter_rule}
 
@@ -232,6 +233,11 @@ rules:
   - RULE-SET,steamcn_domain,国内直连
   - RULE-SET,steam_domain,Steam
 
+  # 暴雪战网（国服直连，国际走代理）
+  - DOMAIN-SUFFIX,battlenet.com.cn,国内直连
+  - DOMAIN-SUFFIX,blizzard.cn,国内直连
+  - RULE-SET,blizzard_domain,暴雪
+
   # 非大陆域名走代理，大陆 IP 直连
   - RULE-SET,cn!_domain,默认代理
   - RULE-SET,google_ip,Google
@@ -274,6 +280,7 @@ rule-providers:
   usd_domain: {<<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/category-cryptocurrency.mrs"}
   steamcn_domain: {<<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/steam@cn.mrs"}
   steam_domain: {<<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/steam.mrs"}
+  blizzard_domain: {<<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/blizzard.mrs"}
   cn!_domain: {<<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/geolocation-!cn.mrs"}
   cn_domain: {<<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/cn.mrs"}
 
